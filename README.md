@@ -26,25 +26,30 @@ git clone git@github.com:nakaikoi/goguma.git
 cd goguma
 ```
 
-2. Install dependencies (once packages are set up):
+2. Install dependencies (from root):
 ```bash
 npm install
 ```
+This installs dependencies for all packages in the monorepo.
 
-3. Set up environment variables (see `.env.example`)
+3. Set up environment variables (see `.env.example` in each package)
 
 4. Start development:
 ```bash
-# Backend
-cd packages/backend
-npm run dev
+# From root - run backend
+npm run dev:backend
 
-# Mobile app
-cd packages/mobile
-npm start
+# From root - run mobile app
+npm run dev:mobile
+
+# Or run from individual packages:
+cd packages/backend && npm run dev
+cd packages/mobile && npm start
 ```
 
 ## 📁 Project Structure
+
+This is a **monorepo** containing all packages in a single repository:
 
 ```
 goguma/
@@ -53,12 +58,19 @@ goguma/
 │   ├── DEVELOPMENT_GAMEPLAN.md
 │   └── API_DESIGN.md
 ├── packages/
-│   ├── mobile/              # React Native Expo app
-│   ├── backend/             # Node.js API server
-│   └── shared/              # Shared schemas and types
+│   ├── mobile/              # React Native Expo app (@goguma/mobile)
+│   ├── backend/             # Node.js API server (@goguma/backend)
+│   └── shared/              # Shared schemas and types (@goguma/shared)
+├── package.json             # Root workspace configuration
 ├── README.md
 └── .gitignore
 ```
+
+**Why a monorepo?**
+- Shared code between mobile and backend (Zod schemas, types)
+- Easier coordination of changes across packages
+- Single source of truth for the entire project
+- Simplified dependency management
 
 ## 📚 Documentation
 
