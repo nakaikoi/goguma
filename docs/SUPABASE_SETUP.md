@@ -38,7 +38,19 @@ Copy these values - you'll need them for your `.env` file.
 8. Paste and run it
 9. You should see multiple "Success" messages
 
-## Step 4: Set Up Storage Bucket
+## Step 4: Configure Authentication Redirect URLs
+
+For mobile app authentication to work, you need to add the deep link redirect URL:
+
+1. In Supabase dashboard, go to **Authentication** → **URL Configuration**
+2. Under **Redirect URLs**, add:
+   - `goguma://auth/callback`
+   - `exp://192.168.1.*:8081` (for Expo Go development - replace with your local IP)
+3. Click **Save**
+
+**Note:** For production, you'll also need to add your production app's redirect URL.
+
+## Step 5: Set Up Storage Bucket
 
 1. In Supabase dashboard, go to **Storage**
 2. Click "Create a new bucket"
@@ -54,7 +66,7 @@ Copy these values - you'll need them for your `.env` file.
 7. Paste and run it
 8. You should see "Success" messages
 
-## Step 5: Create Environment File
+## Step 6: Create Environment File
 
 1. In `packages/backend/`, create a `.env` file:
 ```bash
@@ -83,7 +95,7 @@ LOG_LEVEL=info
 
 3. Replace the placeholder values with your actual Supabase credentials
 
-## Step 6: Verify Setup
+## Step 7: Verify Setup
 
 1. Install dependencies (if not done):
 ```bash

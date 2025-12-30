@@ -49,6 +49,8 @@ export const useAuthStore = create<AuthState>((set) => ({
   signIn: async (email: string) => {
     try {
       set({ loading: true });
+      // Use deep link scheme for mobile redirect
+      // This will open the app when the magic link is clicked
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
