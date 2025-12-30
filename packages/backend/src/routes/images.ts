@@ -24,7 +24,6 @@ import {
 } from '../services/storage.js';
 import { handleError, AppError } from '../utils/errors.js';
 import { randomUUID } from 'crypto';
-import { getItemById } from '../services/db/items.js';
 
 export async function imagesRoutes(fastify: FastifyInstance) {
   // Register multipart plugin for file uploads
