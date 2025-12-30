@@ -33,6 +33,7 @@
     "@babel/plugin-proposal-object-rest-spread": "^7.20.7",
     "@types/react": "~19.1.10",
     "flow-parser": "^0.295.0",
+    "jscodeshift": "^17.3.0",
     "typescript": "^5.3.3"
   }
 }
