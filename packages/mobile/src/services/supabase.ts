@@ -19,7 +19,17 @@ const ExpoSecureStoreAdapter = {
   },
 };
 
-export const supabase = createClient(config.supabaseUrl, config.supabaseAnonKey, {
+// Validate config before creating client
+if (!config.supabaseUrl || !config.supabaseAnonKey) {
+  throw new Error(
+    'Supabase configuration missing. Please create .env file with EXPO_PUBLIC_SUPABASE_URL and EXPO_PUBLIC_SUPABASE_ANON_KEY'
+  );
+}
+
+// Ensure URL is properly formatted (no trailing slash)
+const supabaseUrl = config.supabaseUrl.replace(/\/$/, '');
+
+export const supabase = createClient(supabaseUrl, config.supabaseAnonKey, {
   auth: {
     storage: ExpoSecureStoreAdapter,
     autoRefreshToken: true,
