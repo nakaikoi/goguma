@@ -76,7 +76,11 @@ goguma/
 
 - [Product Specification](./docs/product-specification.md) - Complete product requirements
 - [Development Gameplan](./docs/DEVELOPMENT_GAMEPLAN.md) - Step-by-step development plan
-- [API Design](./docs/API_DESIGN.md) - API endpoints and schemas (coming soon)
+- [API Design](./docs/API_DESIGN.md) - API endpoints and schemas
+- [Database Schema](./docs/DATABASE_SCHEMA.md) - Complete database design
+- [Progress Review](./docs/PROGRESS_REVIEW.md) - Current status and next steps
+- [Supabase Setup](./docs/SUPABASE_SETUP.md) - Supabase configuration guide
+- [Environment Variables](./docs/ENVIRONMENT_VARIABLES.md) - Configuration reference
 
 ## 🛠 Tech Stack
 
@@ -96,7 +100,17 @@ goguma/
 
 ## 📝 Development Status
 
-Currently in **Phase 0: Project Setup & Foundation**
+Currently in **Phase 2.2 Complete** - Image Processing & Upload Service
+
+**Progress:** ~35% Complete
+
+**Completed:**
+- ✅ Phase 0: Project Setup & Foundation
+- ✅ Phase 1: Architecture & Schemas
+- ✅ Phase 2.1: Backend Foundation (Fastify server, auth, items API)
+- ✅ Phase 2.2: Image Processing & Upload Service
+
+**Next:** Phase 2.3 (Database Services) or Phase 3 (AI Integration)
 
 See [DEVELOPMENT_GAMEPLAN.md](./docs/DEVELOPMENT_GAMEPLAN.md) for detailed progress.
 

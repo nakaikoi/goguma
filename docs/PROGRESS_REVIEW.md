@@ -1,7 +1,7 @@
 # Progress Review & Next Steps
 
-**Date:** 2024  
-**Current Phase:** Phase 1 Complete → Starting Phase 2
+**Last Updated:** December 2024  
+**Current Phase:** Phase 2.2 Complete → Phase 2.3 / Phase 3 Next
 
 ---
 
@@ -17,6 +17,14 @@
   - Development gameplan
   - API design (20+ endpoints documented)
   - Database schema design (complete SQL migrations)
+  - Environment variables reference
+  - Supabase setup guide
+  - Node.js installation guide
+- ✅ **Development Environment**
+  - Node.js 20+ installed
+  - Supabase project created and configured
+  - Environment variables set up
+  - Database migrations run successfully
 
 ### Phase 1: Architecture & Schemas
 - ✅ **Shared Zod Schemas** (`packages/shared/src/schemas.ts`)
@@ -37,163 +45,143 @@
   - All packages have tsconfig.json
   - Proper module resolution configured
 
----
+### Phase 2.1: Backend Foundation
+- ✅ **Fastify Server Setup**
+  - Server with CORS configuration
+  - Error handling middleware
+  - Health check endpoint
+- ✅ **Configuration System**
+  - Environment variable validation with Zod
+  - Type-safe config
+  - Structured logging with Pino
+  - Supabase client setup (anon + admin)
+- ✅ **Authentication Middleware**
+  - JWT token verification
+  - User extraction from Supabase tokens
+  - Protected route middleware
+- ✅ **Database Service Layer**
+  - Items CRUD operations
+  - Type-safe database queries
+  - Error handling
+- ✅ **API Endpoints** (5 endpoints)
+  - `POST /api/v1/items` - Create item
+  - `GET /api/v1/items` - List items (with pagination & filtering)
+  - `GET /api/v1/items/:id` - Get item
+  - `PATCH /api/v1/items/:id` - Update item status
+  - `DELETE /api/v1/items/:id` - Delete item
 
-## ⚠️ Partially Complete
-
-### Phase 0: Development Environment
-- ⚠️ **Environment Setup** - Need to verify/complete:
-  - [ ] Node.js 20+ installed
-  - [ ] Expo CLI installed globally
-  - [ ] Supabase project created
-  - [ ] Environment variable templates (.env.example files)
-  - [ ] Git hooks (optional, can add later)
-
----
-
-## 🎯 What You Should Do Next
-
-### **Immediate Next Steps (Priority Order):**
-
-#### 1. **Set Up Supabase Project** (15-30 min)
-   - Create account at [supabase.com](https://supabase.com)
-   - Create new project
-   - Get project URL and anon key
-   - Run database migrations from `docs/DATABASE_SCHEMA.md`
-   - Create storage bucket `item-images`
-
-#### 2. **Set Up Environment Variables** (10 min)
-   - Create `.env.example` files for backend
-   - Document required variables
-   - Set up local `.env` files (don't commit these)
-
-#### 3. **Start Phase 2: Backend Foundation** (2-4 hours)
-   This is where the real coding begins:
-   
-   **2.1 Backend Project Setup**
-   - Install dependencies (Fastify, Supabase client, etc.)
-   - Set up Fastify server
-   - Configure CORS for mobile app
-   - Set up structured logging (pino)
-   - Add error handling middleware
-   
-   **2.2 Authentication Middleware**
-   - Verify Supabase JWT tokens
-   - Extract user ID from token
-   - Create auth middleware for protected routes
-   
-   **2.3 Database Layer**
-   - Set up Supabase client
-   - Create database service layer
-   - Implement basic CRUD operations
-
-#### 4. **Implement First API Endpoints** (1-2 hours)
-   Start with simple endpoints to test the foundation:
-   - `POST /api/v1/items` - Create item
-   - `GET /api/v1/items` - List items
-   - `GET /api/v1/items/:id` - Get item
+### Phase 2.2: Image Processing & Upload
+- ✅ **Image Processing Service**
+  - Resize to max 2048x2048 (maintains aspect ratio)
+  - Compress JPEG/PNG with quality control
+  - Strip EXIF metadata
+  - Auto-fix orientation
+  - Generate thumbnails (300x300)
+- ✅ **Storage Service**
+  - Upload original, compressed, and thumbnail images
+  - Organized storage structure: `{userId}/{itemId}/original_{id}.jpg`
+  - Generate signed URLs (1 hour expiry)
+  - Delete images from storage
+- ✅ **Database Service for Images**
+  - Create image records
+  - Get images for an item
+  - Delete images
+  - Reorder images
+- ✅ **Image Upload API Endpoints** (4 endpoints)
+  - `POST /api/v1/items/:id/images` - Upload multiple images
+  - `GET /api/v1/items/:id/images` - Get all images for item
+  - `DELETE /api/v1/images/:id` - Delete image
+  - `PATCH /api/v1/items/:id/images/reorder` - Reorder images
 
 ---
 
-## 📋 Recommended Development Order
+## 🎯 Current Status
 
-### **Backend First Approach** (Recommended)
-1. ✅ Phase 0 & 1 (DONE)
-2. 🔄 **Phase 2: Backend Foundation** ← **YOU ARE HERE**
-3. Phase 3: AI Integration
-4. Phase 4: Job System
-5. Phase 5: eBay Integration
-6. Phase 6: Mobile App Foundation
-7. Phase 7-10: Mobile Features
-8. Phase 11-12: Polish & Deploy
-
-**Why backend first?**
-- Can test API endpoints with tools like Postman/curl
-- Mobile app depends on working backend
-- Easier to iterate on AI integration without mobile complexity
-
----
-
-## 🚀 Quick Start Guide
-
-### Step 1: Supabase Setup
-```bash
-# 1. Create Supabase project at supabase.com
-# 2. Copy SQL from docs/DATABASE_SCHEMA.md
-# 3. Run in Supabase SQL Editor:
-#    - Migration 1: Create Tables
-#    - Migration 2: Row Level Security
-#    - Storage Policies
-```
-
-### Step 2: Install Dependencies
-```bash
-cd /home/book/Projects/goguma
-npm install
-```
-
-### Step 3: Set Up Environment
-```bash
-# Backend
-cd packages/backend
-# Create .env file with:
-# SUPABASE_URL=your_url
-# SUPABASE_ANON_KEY=your_key
-# PORT=3000
-```
-
-### Step 4: Start Building Backend
-Begin with Phase 2.1 - Backend Project Setup
-
----
-
-## 📊 Progress Summary
+**Overall Progress: ~35%**
 
 | Phase | Status | Completion |
 |-------|--------|------------|
 | Phase 0: Project Setup | ✅ Complete | 100% |
 | Phase 1: Architecture & Schemas | ✅ Complete | 100% |
-| Phase 2: Backend Foundation | 🔄 Next | 0% |
+| Phase 2.1: Backend Foundation | ✅ Complete | 100% |
+| Phase 2.2: Image Processing | ✅ Complete | 100% |
+| Phase 2.3: Database Services | 🔄 Partial | 40% (items, images done) |
 | Phase 3: AI Integration | ⏳ Pending | 0% |
 | Phase 4: Job System | ⏳ Pending | 0% |
 | Phase 5: eBay Integration | ⏳ Pending | 0% |
 | Phase 6-10: Mobile App | ⏳ Pending | 0% |
 | Phase 11-12: Polish & Deploy | ⏳ Pending | 0% |
 
-**Overall Progress: ~15%** (Foundation complete, ready to build)
+---
+
+## 🚀 What's Next
+
+### **Option 1: Complete Database Services (Phase 2.3)** - Recommended
+Finish the database layer before moving to AI:
+- [ ] Listing drafts CRUD operations
+- [ ] Jobs CRUD operations
+- [ ] eBay accounts CRUD operations
+- [ ] Transaction support where needed
+
+**Time:** 1-2 hours
+
+### **Option 2: Start AI Integration (Phase 3)** - Alternative
+Move to AI integration since core infrastructure is ready:
+- [ ] Choose AI provider (OpenAI GPT-4 Vision or Claude)
+- [ ] Set up API client
+- [ ] Create prompt templates
+- [ ] Implement AI analysis service
+- [ ] Create AI analysis endpoint
+
+**Time:** 2-3 hours
+
+### **Option 3: Build Mobile App Foundation (Phase 6)** - Alternative
+Start mobile app while backend continues:
+- [ ] Initialize Expo project
+- [ ] Set up authentication
+- [ ] Create API client
+- [ ] Build photo capture UI
+
+**Time:** 3-4 hours
 
 ---
 
-## 💡 Key Decisions Made
+## 📊 What's Working
 
-1. **Monorepo Structure** - Single repo with npm workspaces ✅
-2. **Tech Stack** - Fastify, Supabase, React Native/Expo ✅
-3. **Database** - PostgreSQL via Supabase with RLS ✅
-4. **Shared Schemas** - Zod schemas in `@goguma/shared` ✅
-5. **API Design** - RESTful with JWT auth ✅
+### Backend API (9 endpoints ready)
+- ✅ Items management (5 endpoints)
+- ✅ Image upload & management (4 endpoints)
+- ✅ Authentication & authorization
+- ✅ Image processing pipeline
+- ✅ Supabase integration
+
+### Infrastructure
+- ✅ Database schema deployed
+- ✅ Storage bucket configured
+- ✅ Environment setup complete
+- ✅ Error handling & logging
 
 ---
 
-## 🎯 Success Criteria for Phase 2
+## 🎯 Success Criteria Met
 
-You'll know Phase 2 is complete when:
-- ✅ Backend server starts and responds to requests
-- ✅ Authentication middleware works (can verify JWT tokens)
+- ✅ Backend server starts and responds
+- ✅ Authentication middleware works
 - ✅ Can create/read items via API
+- ✅ Can upload and process images
 - ✅ Database operations work correctly
-- ✅ Error handling is in place
-- ✅ Logging is configured
+- ✅ Error handling in place
+- ✅ Logging configured
 
 ---
 
 ## 📝 Notes
 
-- **MVP Focus:** Keep it simple, get core flow working first
-- **Security:** Encrypt eBay tokens from the start
-- **Testing:** Test API endpoints as you build them
-- **Documentation:** Keep docs updated as you progress
+- **MVP Focus:** Core flow is taking shape (items → images → ready for AI)
+- **Security:** Authentication working, RLS policies in place
+- **Testing:** API endpoints can be tested with Postman/curl
+- **Next Critical Path:** AI integration to generate listing drafts
 
 ---
 
-**Next Action:** Set up Supabase project and start Phase 2.1 (Backend Project Setup)
-
+**Recommended Next Action:** Complete Phase 2.3 (Database Services) or jump to Phase 3 (AI Integration) - both are viable paths forward.

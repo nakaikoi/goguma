@@ -152,35 +152,39 @@ goguma/
 ## Phase 2: Backend Foundation
 
 ### 2.1 Backend Project Setup
-- [ ] Initialize Node.js project with TypeScript
-- [ ] Set up Fastify framework
-- [ ] Configure environment variables (dotenv)
-- [ ] Set up Supabase client
-- [ ] Configure CORS for mobile app
-- [ ] Set up structured logging (pino)
-- [ ] Add error handling middleware
+- [x] Initialize Node.js project with TypeScript
+- [x] Set up Fastify framework
+- [x] Configure environment variables (dotenv)
+- [x] Set up Supabase client
+- [x] Configure CORS for mobile app
+- [x] Set up structured logging (pino)
+- [x] Add error handling middleware
 
 ### 2.2 Image Processing Service
-- [ ] Install Sharp
-- [ ] Create image processing utilities:
-  - [ ] Resize to max dimensions
-  - [ ] Compress JPEG/PNG
-  - [ ] Strip EXIF data
-  - [ ] Fix orientation
-- [ ] Create upload service for Supabase Storage
-- [ ] Generate thumbnails
+- [x] Install Sharp
+- [x] Create image processing utilities:
+  - [x] Resize to max dimensions
+  - [x] Compress JPEG/PNG
+  - [x] Strip EXIF data
+  - [x] Fix orientation
+- [x] Create upload service for Supabase Storage
+- [x] Generate thumbnails
 
 ### 2.3 Database Layer
-- [ ] Set up Supabase client
-- [ ] Create database service layer
-- [ ] Implement CRUD operations for all tables
+- [x] Set up Supabase client
+- [x] Create database service layer
+- [x] Implement CRUD operations for items table
+- [x] Implement CRUD operations for item_images table
+- [ ] Implement CRUD operations for listing_drafts table
+- [ ] Implement CRUD operations for jobs table
+- [ ] Implement CRUD operations for ebay_accounts table
 - [ ] Add transaction support where needed
 
 ### 2.4 Authentication Middleware
-- [ ] Verify Supabase JWT tokens
-- [ ] Extract user ID from token
-- [ ] Create auth middleware for protected routes
-- [ ] Test with sample requests
+- [x] Verify Supabase JWT tokens
+- [x] Extract user ID from token
+- [x] Create auth middleware for protected routes
+- [x] Test with sample requests
 
 ---
 
