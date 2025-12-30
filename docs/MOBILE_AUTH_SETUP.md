@@ -17,11 +17,18 @@ exp://192.168.1.172:8081
 
 **Note down this URL** - you'll need it for the next step.
 
-### Step 2: Add Redirect URLs in Supabase
+### Step 2: Configure Site URL in Supabase
 
 1. Go to your Supabase project dashboard
 2. Navigate to **Authentication** → **URL Configuration**
-3. Under **Redirect URLs**, add the following URLs (one per line):
+3. **Set the Site URL:**
+   - For Expo Go development, use: `exp://192.168.1.172:8081` (replace with your IP)
+   - Or leave it as your Supabase project URL: `https://your-project-id.supabase.co`
+   - **Note:** The Site URL is used as a fallback, but individual redirect URLs take precedence
+
+### Step 3: Add Redirect URLs in Supabase
+
+Still in **Authentication** → **URL Configuration**, under **Redirect URLs**, add the following URLs (one per line):
 
 ```
 exp://192.168.1.172:8081/--/auth/callback
@@ -30,7 +37,7 @@ goguma://auth/callback
 
 **Important:** Replace `192.168.1.172` with your actual computer's IP address (the one shown in the Expo QR code).
 
-### Step 3: Add Wildcard Pattern (Optional but Recommended)
+### Step 4: Add Wildcard Pattern (Optional but Recommended)
 
 For development, you can also add a wildcard pattern to allow any IP on your network:
 
@@ -40,7 +47,7 @@ exp://192.168.1.*:8081/--/auth/callback
 
 This way, if your IP changes, you don't need to update Supabase every time.
 
-### Step 4: Verify Configuration
+### Step 5: Verify Configuration
 
 1. Save the redirect URLs in Supabase
 2. Restart your Expo server:
@@ -63,10 +70,18 @@ This way, if your IP changes, you don't need to update Supabase every time.
 
 ### Still redirecting to localhost:3000?
 
-1. **Check Supabase configuration:**
+1. **Check Supabase Site URL:**
    - Go to Authentication → URL Configuration
+   - Check the **Site URL** field at the top
+   - If it's set to `http://localhost:3000`, change it to:
+     - Your Expo URL: `exp://192.168.1.172:8081` (replace with your IP)
+     - Or your Supabase project URL: `https://your-project-id.supabase.co`
+   - **This is the most common cause!** The Site URL is used as a fallback
+
+2. **Check Redirect URLs:**
    - Make sure your redirect URLs are saved (not just typed)
    - Check for typos in the URLs
+   - Verify the IP address matches your Expo QR code
 
 2. **Check the console:**
    - When you request a magic link, check the Expo console
