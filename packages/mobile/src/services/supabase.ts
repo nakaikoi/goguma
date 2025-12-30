@@ -1,8 +1,9 @@
 /**
  * Supabase client for mobile app
+ * 
+ * NOTE: URL polyfill is imported in App.tsx to ensure it loads first
  */
 
-import 'react-native-url-polyfill/auto';
 import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
 import { config } from '../config/env';
