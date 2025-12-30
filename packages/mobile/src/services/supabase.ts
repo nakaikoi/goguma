@@ -70,23 +70,6 @@ export const supabase = createClient(supabaseUrl, config.supabaseAnonKey, {
     autoRefreshToken: true,
     persistSession: true,
     detectSessionInUrl: false,
-    // Suppress errors from background token refresh attempts
-    // These are transient and will retry when the app is in foreground
   },
 });
-
-// Suppress console errors from background token refresh
-// This is expected behavior when the app is in background
-const originalConsoleError = console.error;
-console.error = (...args: any[]) => {
-  const message = args[0]?.toString() || '';
-  // Filter out the "Auto refresh tick failed" errors that are expected
-  if (message.includes('Auto refresh tick failed') && 
-      message.includes('User interaction is not allowed')) {
-    // This is expected - Supabase tries to refresh tokens in background
-    // but SecureStore requires user interaction
-    return;
-  }
-  originalConsoleError.apply(console, args);
-};
 
