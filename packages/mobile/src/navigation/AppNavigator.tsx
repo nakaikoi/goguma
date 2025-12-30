@@ -5,11 +5,11 @@
 import React, { useEffect } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import { useAuthStore } from '../store/auth-store.js';
-import LoginScreen from '../screens/LoginScreen.js';
-import HomeScreen from '../screens/HomeScreen.js';
-import CameraScreen from '../screens/CameraScreen.js';
-import DraftScreen from '../screens/DraftScreen.js';
+import { useAuthStore } from '../store/auth-store';
+import LoginScreen from '../screens/LoginScreen';
+import HomeScreen from '../screens/HomeScreen';
+import CameraScreen from '../screens/CameraScreen';
+import DraftScreen from '../screens/DraftScreen';
 
 export type RootStackParamList = {
   Login: undefined;

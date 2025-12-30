@@ -3,8 +3,8 @@
  */
 
 import axios, { AxiosInstance, AxiosError } from 'axios';
-import { config } from '../config/env.js';
-import { supabase } from './supabase.js';
+import { config } from '../config/env';
+import { supabase } from './supabase';
 
 class ApiClient {
   private client: AxiosInstance;

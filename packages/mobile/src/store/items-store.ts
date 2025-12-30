@@ -3,7 +3,7 @@
  */
 
 import { create } from 'zustand';
-import { api } from '../services/api.js';
+import { api } from '../services/api';
 
 export interface Item {
   id: string;

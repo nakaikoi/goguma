@@ -17,8 +17,8 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
-import { api } from '../services/api.js';
-import type { RootStackParamList } from '../navigation/AppNavigator.js';
+import { api } from '../services/api';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type CameraScreenRouteProp = RouteProp<RootStackParamList, 'Camera'>;
 

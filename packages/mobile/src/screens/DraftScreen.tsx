@@ -14,8 +14,8 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
-import { useItemsStore } from '../store/items-store.js';
-import type { RootStackParamList } from '../navigation/AppNavigator.js';
+import { useItemsStore } from '../store/items-store';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type DraftScreenRouteProp = RouteProp<RootStackParamList, 'Draft'>;
 

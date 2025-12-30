@@ -13,9 +13,9 @@ import {
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
-import { useAuthStore } from '../store/auth-store.js';
-import { useItemsStore, type Item } from '../store/items-store.js';
-import type { RootStackParamList } from '../navigation/AppNavigator.js';
+import { useAuthStore } from '../store/auth-store';
+import { useItemsStore, type Item } from '../store/items-store';
+import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 

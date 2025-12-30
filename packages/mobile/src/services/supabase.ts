@@ -4,7 +4,7 @@
 
 import { createClient } from '@supabase/supabase-js';
 import * as SecureStore from 'expo-secure-store';
-import { config } from '../config/env.js';
+import { config } from '../config/env';
 
 // Custom storage adapter for SecureStore
 const ExpoSecureStoreAdapter = {
