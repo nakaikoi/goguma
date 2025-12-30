@@ -18,18 +18,30 @@ function App() {
     // Handle deep links for authentication
     const handleDeepLink = async (event: { url: string }) => {
       const { url } = event;
+      console.log('Deep link received:', url);
       
       // Check if this is a Supabase auth callback
+      // Supabase redirects with hash fragment: #access_token=...&refresh_token=...
       if (url.includes('#access_token=') || url.includes('?access_token=')) {
         // Extract the URL fragment/query
-        const urlParts = url.split('#');
-        const fragment = urlParts[1] || url.split('?')[1];
+        const hashIndex = url.indexOf('#');
+        const queryIndex = url.indexOf('?');
+        const fragment = hashIndex !== -1 
+          ? url.substring(hashIndex + 1)
+          : queryIndex !== -1 
+            ? url.substring(queryIndex + 1)
+            : null;
         
         if (fragment) {
           // Parse the fragment to extract tokens
           const params = new URLSearchParams(fragment);
           const accessToken = params.get('access_token');
           const refreshToken = params.get('refresh_token');
+          
+          console.log('Extracted tokens:', { 
+            hasAccessToken: !!accessToken, 
+            hasRefreshToken: !!refreshToken 
+          });
           
           if (accessToken && refreshToken) {
             // Set the session with the tokens
@@ -40,6 +52,8 @@ function App() {
             
             if (error) {
               console.error('Error setting session:', error);
+            } else {
+              console.log('Session set successfully');
             }
           }
         }

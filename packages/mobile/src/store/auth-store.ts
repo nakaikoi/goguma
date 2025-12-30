@@ -4,6 +4,8 @@
 
 import { create } from 'zustand';
 import { Session, User } from '@supabase/supabase-js';
+import * as Linking from 'expo-linking';
+import Constants from 'expo-constants';
 import { supabase } from '../services/supabase';
 
 interface AuthState {
@@ -49,12 +51,32 @@ export const useAuthStore = create<AuthState>((set) => ({
   signIn: async (email: string) => {
     try {
       set({ loading: true });
-      // Use deep link scheme for mobile redirect
-      // This will open the app when the magic link is clicked
+      
+      // Get the redirect URL - use Expo development URL for Expo Go, or custom scheme for standalone
+      let redirectUrl: string;
+      
+      // Check if we're in Expo Go (development)
+      if (Constants.executionEnvironment === 'storeClient') {
+        // For Expo Go, use the exp:// scheme with the current development URL
+        const expoUrl = Constants.expoConfig?.hostUri || Constants.linkingUri;
+        if (expoUrl) {
+          // Convert exp://192.168.1.172:8081 to exp://192.168.1.172:8081/--/auth/callback
+          redirectUrl = `exp://${expoUrl.split('://')[1]?.split('/')[0]}/--/auth/callback`;
+        } else {
+          // Fallback to goguma:// scheme
+          redirectUrl = 'goguma://auth/callback';
+        }
+      } else {
+        // For standalone builds, use the custom scheme
+        redirectUrl = 'goguma://auth/callback';
+      }
+      
+      console.log('Using redirect URL:', redirectUrl);
+      
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: 'goguma://auth/callback',
+          emailRedirectTo: redirectUrl,
         },
       });
 
