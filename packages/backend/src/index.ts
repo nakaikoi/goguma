@@ -9,6 +9,7 @@ import cors from '@fastify/cors';
 import { env } from './config/env.js';
 import { logger } from './config/logger.js';
 import { itemsRoutes } from './routes/items.js';
+import { imagesRoutes } from './routes/images.js';
 import { handleError } from './utils/errors.js';
 
 async function buildServer() {
@@ -31,6 +32,7 @@ async function buildServer() {
 
   // Register API routes
   await server.register(itemsRoutes, { prefix: env.API_PREFIX + '/items' });
+  await server.register(imagesRoutes, { prefix: env.API_PREFIX });
 
   // Global error handler
   server.setErrorHandler((error, request, reply) => {
