@@ -40,7 +40,8 @@
       "eas": {
         "projectId": "your-project-id"
       }
-    }
+    },
+    "sdkVersion": "54.0.0"
   }
 }
 
