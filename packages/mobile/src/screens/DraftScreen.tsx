@@ -28,12 +28,16 @@ export default function DraftScreen() {
   const { itemId } = route.params;
   const insets = useSafeAreaInsets();
 
-  const { currentDraft, loading, fetchDraft, analyzeItem } = useItemsStore();
+  const { currentDraft, loading, fetchDraft, analyzeItem, clearCurrentItem } = useItemsStore();
   const [analyzing, setAnalyzing] = useState(false);
   const [images, setImages] = useState<Array<{ id: string; url: string; orderIndex: number }>>([]);
   const [loadingImages, setLoadingImages] = useState(false);
 
   useEffect(() => {
+    // Clear draft immediately when itemId changes to prevent showing old draft
+    clearCurrentItem();
+    
+    // Then fetch the draft for this item
     fetchDraft(itemId);
     fetchImages();
   }, [itemId]);

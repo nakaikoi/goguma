@@ -63,6 +63,7 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
       set((state) => ({
         items: [item, ...state.items],
         currentItem: item,
+        currentDraft: null, // Clear any previous draft when creating new item
         loading: false,
       }));
       return item;
@@ -108,11 +109,17 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
 
   fetchDraft: async (itemId: string) => {
     try {
-      set({ loading: true, error: null });
+      // Clear current draft immediately when fetching a new one
+      set({ loading: true, error: null, currentDraft: null });
       const draft = await api.getDraft(itemId);
       set({ currentDraft: draft, loading: false });
     } catch (error: any) {
-      set({ error: error.message, loading: false });
+      // If draft not found (404), that's expected - clear currentDraft
+      if (error.response?.status === 404) {
+        set({ currentDraft: null, loading: false, error: null });
+      } else {
+        set({ error: error.message, loading: false, currentDraft: null });
+      }
     }
   },
 
