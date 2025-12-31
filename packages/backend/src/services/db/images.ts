@@ -123,7 +123,7 @@ export async function reorderImages(
   imageIds: string[]
 ): Promise<void> {
   // Verify item belongs to user
-  const { data: item, error: itemError } = await supabase
+  const { data: item, error: itemError } = await supabaseAdmin
     .from('items')
     .select('id')
     .eq('id', itemId)
