@@ -42,10 +42,13 @@ export default function DraftScreen() {
     try {
       setLoadingImages(true);
       const imageList = await api.getItemImages(itemId);
-      setImages(imageList);
+      console.log('📸 Fetched images:', imageList?.length || 0, 'images');
+      console.log('📸 Image data:', imageList);
+      setImages(imageList || []);
     } catch (error: any) {
-      console.error('Failed to fetch images:', error);
+      console.error('❌ Failed to fetch images:', error);
       // Don't show error - images might not be uploaded yet
+      setImages([]);
     } finally {
       setLoadingImages(false);
     }

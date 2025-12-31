@@ -3,15 +3,16 @@ import { z } from 'zod';
 /**
  * Item Specifics Schema
  * Represents eBay item specifics (brand, model, size, color, etc.)
+ * Fields can be strings, null (if AI can't determine), or undefined (if missing)
  */
 export const ItemSpecificsSchema = z.object({
-  brand: z.string().optional(),
-  model: z.string().optional(),
-  size: z.string().optional(),
-  color: z.string().optional(),
-  material: z.string().optional(),
-  style: z.string().optional(),
-  condition: z.string().optional(),
+  brand: z.string().nullish(),
+  model: z.string().nullish(),
+  size: z.string().nullish(),
+  color: z.string().nullish(),
+  material: z.string().nullish(),
+  style: z.string().nullish(),
+  condition: z.string().nullish(),
   // Allow additional dynamic fields
 }).passthrough();
 

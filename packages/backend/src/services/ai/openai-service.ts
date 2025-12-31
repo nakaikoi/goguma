@@ -3,6 +3,7 @@
  */
 
 import OpenAI from 'openai';
+import { ZodError } from 'zod';
 import { env } from '../../config/env.js';
 import { logger } from '../../config/logger.js';
 import {
@@ -110,12 +111,18 @@ export async function analyzeItemImages(
       throw new Error('Invalid JSON response from AI');
     }
 
+    // Clean up itemSpecifics: remove null values (keep undefined for optional fields)
+    const cleanItemSpecifics = parsedContent.itemSpecifics || {};
+    const cleanedItemSpecifics = Object.fromEntries(
+      Object.entries(cleanItemSpecifics).filter(([_, value]) => value !== null)
+    );
+
     // Transform to match our schema
     const draftData = {
       title: parsedContent.title || '',
       description: parsedContent.description || '',
       condition: parsedContent.condition || 'Used',
-      itemSpecifics: parsedContent.itemSpecifics || {},
+      itemSpecifics: cleanedItemSpecifics, // Use cleaned version (nulls removed)
       pricing: {
         min: parsedContent.pricing?.min || 0,
         max: parsedContent.pricing?.max || 0,
@@ -131,7 +138,25 @@ export async function analyzeItemImages(
     };
 
     // Validate against Zod schema
-    const validated = ListingDraftSchema.parse(draftData);
+    let validated: ListingDraft;
+    try {
+      validated = ListingDraftSchema.parse(draftData);
+    } catch (validationError) {
+      if (validationError instanceof ZodError) {
+        logger.error(
+          {
+            itemId,
+            validationErrors: validationError.errors,
+            draftData,
+          },
+          'Schema validation failed'
+        );
+        throw new Error(
+          `AI response validation failed: ${JSON.stringify(validationError.errors, null, 2)}`
+        );
+      }
+      throw validationError;
+    }
 
     logger.info(
       {
