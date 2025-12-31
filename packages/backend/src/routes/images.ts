@@ -182,6 +182,18 @@ export async function imagesRoutes(fastify: FastifyInstance) {
           data: uploadedImages,
         });
       } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : String(error);
+        const errorStack = error instanceof Error ? error.stack : undefined;
+        request.log.error(
+          {
+            error: errorMessage,
+            errorStack,
+            itemId: request.params.id,
+            userId: request.user?.id,
+            errorType: error?.constructor?.name,
+          },
+          'Image upload route error'
+        );
         return handleError(error, reply);
       }
     }
