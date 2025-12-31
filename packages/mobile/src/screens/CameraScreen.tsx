@@ -42,7 +42,7 @@ export default function CameraScreen() {
 
   const takePhoto = async () => {
     if (!permission?.granted) {
-      Alert.alert('Permission needed', 'Camera permission is required');
+      Alert.alert('Permission needed', 'Camera permission is required', [{ text: 'Cancel' }]);
       return;
     }
 
@@ -84,7 +84,7 @@ export default function CameraScreen() {
 
   const uploadImages = async () => {
     if (images.length === 0) {
-      Alert.alert('No images', 'Please add at least one image');
+      Alert.alert('No images', 'Please add at least one image', [{ text: 'Cancel' }]);
       return;
     }
 
@@ -107,7 +107,7 @@ export default function CameraScreen() {
       // Images are processing in background, but we can navigate immediately
       navigation.navigate('Draft', { itemId });
     } catch (error: any) {
-      Alert.alert('Upload failed', error.message || 'Failed to upload images');
+      Alert.alert('Upload failed', error.message || 'Failed to upload images', [{ text: 'Cancel' }]);
       setUploadProgress(0);
     } finally {
       setUploading(false);
