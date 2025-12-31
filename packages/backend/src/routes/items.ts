@@ -42,6 +42,7 @@ export async function itemsRoutes(fastify: FastifyInstance) {
 
       const item = await createItem({
         userId: request.user.id,
+        userEmail: request.user.email,
       });
 
       return reply.code(201).send({

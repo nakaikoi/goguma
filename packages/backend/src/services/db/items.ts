@@ -9,6 +9,7 @@ import { ensureUserExists } from './users.js';
 
 export interface CreateItemInput {
   userId: string;
+  userEmail?: string;
   status?: ItemStatus;
 }
 
@@ -25,7 +26,7 @@ export interface Item {
  */
 export async function createItem(input: CreateItemInput): Promise<Item> {
   // Ensure user exists in users table (required for foreign key)
-  await ensureUserExists(input.userId);
+  await ensureUserExists(input.userId, input.userEmail);
 
   const { data, error } = await supabaseAdmin
     .from('items')
