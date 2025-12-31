@@ -25,6 +25,13 @@ class ApiClient {
         if (session.data.session?.access_token) {
           config.headers.Authorization = `Bearer ${session.data.session.access_token}`;
         }
+        
+        // Remove Content-Type for FormData - axios will set it with boundary automatically
+        if (config.data instanceof FormData) {
+          delete config.headers['Content-Type'];
+          delete config.headers['content-type'];
+        }
+        
         return config;
       },
       (error) => {
@@ -140,17 +147,8 @@ class ApiClient {
         },
       };
       
-      // React Native FormData needs special handling with axios
-      // We need to ensure axios doesn't try to transform it and sets Content-Type correctly
-      // @ts-ignore - transformRequest is a valid axios config option
-      config.transformRequest = [];
-      // @ts-ignore - React Native FormData should be passed as-is
-      config.transformResponse = [];
-      
-      // Manually ensure Content-Type is not set (axios will add it with boundary for FormData)
-      delete config.headers['Content-Type'];
-      delete config.headers['content-type'];
-      
+      // React Native FormData - axios should automatically detect and set Content-Type
+      // The interceptor will remove any default Content-Type header
       const response = await this.client.post(uploadUrl, formData, config);
       console.log('✅ Upload successful:', response.data);
       return response.data.data;
