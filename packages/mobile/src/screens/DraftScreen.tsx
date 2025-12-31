@@ -51,6 +51,29 @@ export default function DraftScreen() {
     }
   };
 
+  const handleDeleteImage = async (imageId: string) => {
+    Alert.alert(
+      'Delete Image',
+      'Are you sure you want to delete this image? This cannot be undone.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await api.deleteImage(imageId);
+              // Refresh images list
+              await fetchImages();
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to delete image', [{ text: 'Cancel' }]);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const handleAnalyze = async () => {
     try {
       setAnalyzing(true);
@@ -151,11 +174,18 @@ export default function DraftScreen() {
             <Text style={styles.label}>Images ({images.length})</Text>
             <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageGallery}>
               {images.map((image) => (
-                <Image
-                  key={image.id}
-                  source={{ uri: image.url }}
-                  style={styles.thumbnail}
-                />
+                <View key={image.id} style={styles.imageWrapper}>
+                  <Image
+                    source={{ uri: image.url }}
+                    style={styles.thumbnail}
+                  />
+                  <TouchableOpacity
+                    style={styles.deleteImageButton}
+                    onPress={() => handleDeleteImage(image.id)}
+                  >
+                    <Text style={styles.deleteImageButtonText}>×</Text>
+                  </TouchableOpacity>
+                </View>
               ))}
             </ScrollView>
           </View>
