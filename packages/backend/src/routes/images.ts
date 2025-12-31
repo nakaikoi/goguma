@@ -56,7 +56,23 @@ export async function imagesRoutes(fastify: FastifyInstance) {
         }
 
         const uploadedImages = [];
-        const data = await request.saveRequestFiles();
+        
+        // Parse multipart files directly from request
+        // This works better with React Native FormData than saveRequestFiles()
+        const data: any[] = [];
+        const parts = request.parts();
+        
+        for await (const part of parts) {
+          if (part.type === 'file') {
+            data.push(part);
+          }
+        }
+        
+        request.log.debug({ fileCount: data.length }, 'Files received from multipart');
+        
+        if (data.length === 0) {
+          throw new AppError('BAD_REQUEST', 'No files found in request', 400);
+        }
 
         for (let i = 0; i < data.length; i++) {
           const file = data[i];
@@ -64,7 +80,11 @@ export async function imagesRoutes(fastify: FastifyInstance) {
 
           try {
             // Validate file
-            validateImageFile(file.mimetype, file.file.bytesRead);
+            // For multipart parts, mimetype and encoding are on the part object
+            const mimetype = file.mimetype || 'image/jpeg';
+            const fileSize = file.file ? file.file.bytesRead : 0;
+            
+            validateImageFile(mimetype, fileSize);
 
             // Read file buffer
             const buffer = await file.toBuffer();
@@ -75,7 +95,12 @@ export async function imagesRoutes(fastify: FastifyInstance) {
             }
 
             request.log.debug(
-              { filename: file.filename, size: buffer.length, mimetype: file.mimetype },
+              { 
+                filename: file.filename, 
+                size: buffer.length, 
+                mimetype: file.mimetype,
+                fieldname: file.fieldname,
+              },
               'Processing image file'
             );
 
@@ -138,8 +163,9 @@ export async function imagesRoutes(fastify: FastifyInstance) {
                 error: errorMessage,
                 errorStack,
                 filename: file.filename,
+                fieldname: file.fieldname,
                 mimetype: file.mimetype,
-                size: file.file.bytesRead,
+                size: file.file?.bytesRead || 0,
               },
               'Failed to process image'
             );
