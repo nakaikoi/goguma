@@ -120,26 +120,37 @@ class ApiClient {
 
     const uploadUrl = `/items/${itemId}/images`;
     console.log('📡 Uploading to:', `${this.client.defaults.baseURL}${uploadUrl}`);
-    console.log('FormData type:', typeof formData);
-    console.log('FormData constructor:', formData.constructor.name);
     
     try {
-      // For React Native, we need to let axios handle Content-Type automatically
-      // But we can check what it's setting
-      const response = await this.client.post(uploadUrl, formData, {
+      // For React Native FormData, axios should automatically detect and set Content-Type
+      // But we need to ensure it's not being overridden
+      const config = {
         headers: {
-          // Explicitly DO NOT set Content-Type - axios will set it with boundary
-          // React Native FormData needs axios to set the boundary automatically
+          // DO NOT set Content-Type - let axios detect FormData and set it with boundary
           ...(token && { Authorization: `Bearer ${token}` }),
         },
-        // Ensure axios treats this as FormData
-        transformRequest: (data, headers) => {
-          // Remove any Content-Type header axios might have set incorrectly
-          if (headers['Content-Type']) {
-            delete headers['Content-Type'];
+        timeout: 120000, // 2 minutes specifically for image uploads
+        onUploadProgress: (progressEvent: any) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            console.log(`📊 Upload progress: ${percentCompleted}% (${progressEvent.loaded}/${progressEvent.total} bytes)`);
+          } else {
+            console.log(`📊 Upload progress: ${progressEvent.loaded} bytes uploaded`);
           }
-          return data;
         },
+      };
+      
+      // Override axios default transformRequest to ensure FormData is passed through correctly
+      // @ts-ignore - React Native FormData needs special handling
+      config.transformRequest = [(data) => {
+        // Return FormData as-is - don't let axios try to stringify it
+        if (data instanceof FormData) {
+          return data;
+        }
+        return data;
+      }];
+      
+      const response = await this.client.post(uploadUrl, formData, config);
         timeout: 120000, // 2 minutes specifically for image uploads
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
