@@ -126,16 +126,35 @@ export async function listItems(
     throw new Error(`Failed to list items: ${error.message}`);
   }
 
+  // Log first item to debug structure
+  if (data && data.length > 0) {
+    logger.info({ sampleItem: data[0] }, 'Sample item structure from query');
+  }
+
   return {
     items:
-      data?.map((item: any) => ({
-        id: item.id,
-        user_id: item.user_id,
-        status: item.status as ItemStatus,
-        created_at: item.created_at,
-        updated_at: item.updated_at,
-        draftTitle: item.listing_drafts?.[0]?.title || null,
-      })) || [],
+      data?.map((item: any) => {
+        // Handle both array and object responses from Supabase
+        // Since item_id is unique, Supabase might return as object or array
+        let draftTitle = null;
+        if (item.listing_drafts) {
+          if (Array.isArray(item.listing_drafts)) {
+            draftTitle = item.listing_drafts[0]?.title || null;
+          } else {
+            // It's an object (one-to-one relationship)
+            draftTitle = item.listing_drafts.title || null;
+          }
+        }
+
+        return {
+          id: item.id,
+          user_id: item.user_id,
+          status: item.status as ItemStatus,
+          created_at: item.created_at,
+          updated_at: item.updated_at,
+          draftTitle,
+        };
+      }) || [],
     total: count || 0,
   };
 }
