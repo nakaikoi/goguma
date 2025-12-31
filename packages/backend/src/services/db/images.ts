@@ -89,7 +89,7 @@ export async function deleteImage(
   userId: string
 ): Promise<{ storagePath: string }> {
   // Get the image first, verify item ownership
-  const { data: imageData, error: fetchError } = await supabase
+  const { data: imageData, error: fetchError } = await supabaseAdmin
     .from('item_images')
     .select('storage_path, item_id, items!inner(user_id)')
     .eq('id', imageId)
@@ -101,7 +101,7 @@ export async function deleteImage(
   }
 
   // Now delete from database
-  const { error: deleteError } = await supabase
+  const { error: deleteError } = await supabaseAdmin
     .from('item_images')
     .delete()
     .eq('id', imageId);
@@ -136,7 +136,7 @@ export async function reorderImages(
 
   // Update order_index for each image
   const updates = imageIds.map((imageId, index) =>
-    supabase
+    supabaseAdmin
       .from('item_images')
       .update({ order_index: index })
       .eq('id', imageId)
