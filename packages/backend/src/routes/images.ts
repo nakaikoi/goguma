@@ -45,15 +45,27 @@ export async function imagesRoutes(fastify: FastifyInstance) {
       reply: FastifyReply
     ) => {
       const startTime = Date.now();
+      const contentType = request.headers['content-type'];
       request.log.info({ 
         itemId: request.params.id, 
         method: request.method,
         url: request.url,
         headers: {
-          'content-type': request.headers['content-type'],
+          'content-type': contentType,
           'content-length': request.headers['content-length'],
+          'all-headers': Object.keys(request.headers),
         }
       }, 'Image upload request received');
+      
+      // Check if Content-Type is multipart
+      if (!contentType || !contentType.includes('multipart/form-data')) {
+        request.log.error({ contentType }, 'Invalid Content-Type for multipart upload');
+        throw new AppError(
+          'BAD_REQUEST',
+          `Invalid Content-Type: ${contentType || 'missing'}. Expected multipart/form-data`,
+          400
+        );
+      }
       
       try {
         if (!request.user) {

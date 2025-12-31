@@ -120,12 +120,25 @@ class ApiClient {
 
     const uploadUrl = `/items/${itemId}/images`;
     console.log('📡 Uploading to:', `${this.client.defaults.baseURL}${uploadUrl}`);
+    console.log('FormData type:', typeof formData);
+    console.log('FormData constructor:', formData.constructor.name);
     
     try {
+      // For React Native, we need to let axios handle Content-Type automatically
+      // But we can check what it's setting
       const response = await this.client.post(uploadUrl, formData, {
         headers: {
-          // Don't set Content-Type - let axios set it with boundary
+          // Explicitly DO NOT set Content-Type - axios will set it with boundary
+          // React Native FormData needs axios to set the boundary automatically
           ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        // Ensure axios treats this as FormData
+        transformRequest: (data, headers) => {
+          // Remove any Content-Type header axios might have set incorrectly
+          if (headers['Content-Type']) {
+            delete headers['Content-Type'];
+          }
+          return data;
         },
         timeout: 120000, // 2 minutes specifically for image uploads
         onUploadProgress: (progressEvent) => {
