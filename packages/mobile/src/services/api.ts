@@ -151,15 +151,6 @@ class ApiClient {
       }];
       
       const response = await this.client.post(uploadUrl, formData, config);
-        onUploadProgress: (progressEvent) => {
-          if (progressEvent.total) {
-            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-            console.log(`📊 Upload progress: ${percentCompleted}% (${progressEvent.loaded}/${progressEvent.total} bytes)`);
-          } else {
-            console.log(`📊 Upload progress: ${progressEvent.loaded} bytes uploaded`);
-          }
-        },
-      });
       console.log('✅ Upload successful:', response.data);
       return response.data.data;
     } catch (error: any) {
