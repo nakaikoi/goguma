@@ -82,8 +82,6 @@ export async function imagesRoutes(fastify: FastifyInstance) {
 
         request.log.info('Item verified, starting multipart parse...');
 
-        const uploadedImages = [];
-        
         // Parse multipart files directly from request
         // This works better with React Native FormData than saveRequestFiles()
         const data: any[] = [];
@@ -92,49 +90,23 @@ export async function imagesRoutes(fastify: FastifyInstance) {
         const parts = request.parts();
         request.log.info('Parts iterator obtained, starting iteration...');
         
+        // Read all parts and their buffers into memory first
+        // We need to consume the stream before sending response
+        const fileBuffers: Array<{ buffer: Buffer; filename: string; mimetype: string; fieldname: string }> = [];
+        
         for await (const part of parts) {
           request.log.info({ partType: part.type, fieldname: part.fieldname, filename: part.filename }, 'Processing part');
           if (part.type === 'file') {
-            data.push(part);
-            request.log.info({ filename: part.filename, count: data.length }, 'File part received');
-          }
-        }
-        
-        request.log.info({ fileCount: data.length, elapsed: `${Date.now() - startTime}ms` }, 'Files received from multipart');
-        
-        if (data.length === 0) {
-          throw new AppError('BAD_REQUEST', 'No files found in request', 400);
-        }
-
-        // Process images asynchronously to avoid timeout
-        // Send immediate response and process in background
-        const processImagesAsync = async () => {
-          const processedImages = [];
-          
-          for (let i = 0; i < data.length; i++) {
-            const file = data[i];
-            const imageId = randomUUID();
-
             try {
-              request.log.info({ 
-                index: i,
-                filename: file.filename,
-                fieldname: file.fieldname,
-                mimetype: file.mimetype,
-              }, `Processing image ${i + 1}/${data.length}`);
-
-              // Validate file
-              const mimetype = file.mimetype || 'image/jpeg';
-              
-              // Read file buffer - Fastify multipart parts have different APIs
+              // Read file buffer immediately while we have the stream
               const readStartTime = Date.now();
               let buffer: Buffer;
-              if (typeof file.toBuffer === 'function') {
-                buffer = await file.toBuffer();
-              } else if (file.file) {
+              if (typeof part.toBuffer === 'function') {
+                buffer = await part.toBuffer();
+              } else if (part.file) {
                 // Read from file stream
                 const chunks: Buffer[] = [];
-                for await (const chunk of file.file) {
+                for await (const chunk of part.file) {
                   chunks.push(chunk);
                 }
                 buffer = Buffer.concat(chunks);
@@ -143,12 +115,54 @@ export async function imagesRoutes(fastify: FastifyInstance) {
               }
               
               const readTime = Date.now() - readStartTime;
-              request.log.info({ size: buffer.length, readTime: `${readTime}ms` }, 'File buffer read');
+              request.log.info({ 
+                filename: part.filename, 
+                size: buffer.length, 
+                readTime: `${readTime}ms` 
+              }, 'File buffer read from stream');
               
-              const fileSize = buffer.length;
-              validateImageFile(mimetype, fileSize);
+              fileBuffers.push({
+                buffer,
+                filename: part.filename || 'image.jpg',
+                mimetype: part.mimetype || 'image/jpeg',
+                fieldname: part.fieldname || 'images',
+              });
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              request.log.error({ error: errorMessage, filename: part.filename }, 'Failed to read file from stream');
+            }
+          }
+        }
+        
+        request.log.info({ 
+          fileCount: fileBuffers.length, 
+          elapsed: `${Date.now() - startTime}ms` 
+        }, 'All files read from multipart stream');
+        
+        if (fileBuffers.length === 0) {
+          throw new AppError('BAD_REQUEST', 'No files found in request', 400);
+        }
 
-              if (!buffer || buffer.length === 0) {
+        // Now that we've consumed the stream, we can send response immediately
+        // Process images asynchronously in background
+        const processImagesAsync = async () => {
+          const processedImages = [];
+          
+          for (let i = 0; i < fileBuffers.length; i++) {
+            const file = fileBuffers[i];
+            const imageId = randomUUID();
+
+            try {
+              request.log.info({ 
+                index: i,
+                filename: file.filename,
+                size: file.buffer.length,
+              }, `Processing image ${i + 1}/${fileBuffers.length}`);
+
+              // Validate file
+              validateImageFile(file.mimetype, file.buffer.length);
+
+              if (!file.buffer || file.buffer.length === 0) {
                 throw new Error('File buffer is empty or invalid');
               }
 
@@ -158,9 +172,9 @@ export async function imagesRoutes(fastify: FastifyInstance) {
                 userId: request.user.id,
                 itemId: request.params.id,
                 imageId,
-                buffer,
-                filename: file.filename || 'image.jpg',
-                contentType: mimetype,
+                buffer: file.buffer,
+                filename: file.filename,
+                contentType: file.mimetype,
               });
               const uploadTime = Date.now() - uploadStartTime;
               request.log.info({ uploadTime: `${uploadTime}ms` }, 'Supabase upload completed');
@@ -200,7 +214,7 @@ export async function imagesRoutes(fastify: FastifyInstance) {
 
           request.log.info(
             { 
-              total: data.length, 
+              total: fileBuffers.length, 
               successful: processedImages.length,
               elapsed: `${Date.now() - startTime}ms`
             },
@@ -213,11 +227,11 @@ export async function imagesRoutes(fastify: FastifyInstance) {
           request.log.error({ error }, 'Background image processing failed');
         });
 
-        // Return immediate response
+        // Return immediate response now that stream is consumed
         return reply.code(202).send({
           message: 'Image upload accepted, processing in background',
           itemId: request.params.id,
-          imageCount: data.length,
+          imageCount: fileBuffers.length,
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
