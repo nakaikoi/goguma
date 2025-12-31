@@ -73,8 +73,17 @@ export async function processImage(
 
     return processedBuffer;
   } catch (error) {
-    logger.error({ error }, 'Image processing failed');
-    throw new Error(`Image processing failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    logger.error(
+      {
+        error: errorMessage,
+        errorStack,
+        bufferSize: inputBuffer?.length,
+      },
+      'Image processing failed'
+    );
+    throw new Error(`Image processing failed: ${errorMessage}`);
   }
 }
 
@@ -105,8 +114,17 @@ export async function generateThumbnail(
 
     return thumbnail;
   } catch (error) {
-    logger.error({ error }, 'Thumbnail generation failed');
-    throw new Error(`Thumbnail generation failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : undefined;
+    logger.error(
+      {
+        error: errorMessage,
+        errorStack,
+        bufferSize: inputBuffer?.length,
+      },
+      'Thumbnail generation failed'
+    );
+    throw new Error(`Thumbnail generation failed: ${errorMessage}`);
   }
 }
 

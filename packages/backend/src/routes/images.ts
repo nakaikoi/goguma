@@ -69,6 +69,16 @@ export async function imagesRoutes(fastify: FastifyInstance) {
             // Read file buffer
             const buffer = await file.toBuffer();
 
+            // Check if buffer is valid
+            if (!buffer || buffer.length === 0) {
+              throw new Error('File buffer is empty or invalid');
+            }
+
+            request.log.debug(
+              { filename: file.filename, size: buffer.length, mimetype: file.mimetype },
+              'Processing image file'
+            );
+
             // Process image (resize, compress, strip EXIF)
             const processedBuffer = await processImage(buffer);
             const thumbnailBuffer = await generateThumbnail(buffer);
@@ -121,7 +131,18 @@ export async function imagesRoutes(fastify: FastifyInstance) {
             });
           } catch (error) {
             // Log error but continue with other images
-            request.log.error({ error, filename: file.filename }, 'Failed to process image');
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            const errorStack = error instanceof Error ? error.stack : undefined;
+            request.log.error(
+              {
+                error: errorMessage,
+                errorStack,
+                filename: file.filename,
+                mimetype: file.mimetype,
+                size: file.file.bytesRead,
+              },
+              'Failed to process image'
+            );
             // Don't throw - allow other images to be processed
           }
         }
