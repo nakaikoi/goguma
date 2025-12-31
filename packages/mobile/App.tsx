@@ -20,6 +20,31 @@ function App() {
       const { url } = event;
       console.log('Deep link received:', url);
       
+      // Check for error in deep link (e.g., expired OTP)
+      if (url.includes('#error=') || url.includes('?error=')) {
+        const hashIndex = url.indexOf('#');
+        const queryIndex = url.indexOf('?');
+        const fragment = hashIndex !== -1 
+          ? url.substring(hashIndex + 1)
+          : queryIndex !== -1 
+            ? url.substring(queryIndex + 1)
+            : null;
+        
+        if (fragment) {
+          const params = new URLSearchParams(fragment);
+          const errorCode = params.get('error_code');
+          const errorDescription = params.get('error_description');
+          
+          if (errorCode === 'otp_expired') {
+            console.warn('Magic link expired. Please request a new one.');
+            // You could show an alert here if needed
+          } else {
+            console.error('Auth error:', errorCode, errorDescription);
+          }
+        }
+        return; // Don't try to process as success
+      }
+      
       // Check if this is a Supabase auth callback
       // Supabase redirects with hash fragment: #access_token=...&refresh_token=...
       if (url.includes('#access_token=') || url.includes('?access_token=')) {

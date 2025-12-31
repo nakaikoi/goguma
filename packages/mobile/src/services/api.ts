@@ -49,6 +49,17 @@ class ApiClient {
           // If refresh fails, redirect to login
           throw new Error('Session expired. Please log in again.');
         }
+        
+        // Log 400 errors with more detail
+        if (error.response?.status === 400) {
+          console.error('Bad Request (400):', {
+            url: error.config?.url,
+            method: error.config?.method,
+            data: error.response?.data,
+            headers: error.config?.headers,
+          });
+        }
+        
         return Promise.reject(error);
       }
     );
@@ -56,7 +67,8 @@ class ApiClient {
 
   // Items API
   async createItem() {
-    const response = await this.client.post('/items');
+    // POST /items expects an empty body {}
+    const response = await this.client.post('/items', {});
     return response.data.data;
   }
 

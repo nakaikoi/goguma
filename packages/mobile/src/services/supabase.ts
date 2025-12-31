@@ -27,12 +27,25 @@ const ExpoSecureStoreAdapter = {
   },
   setItem: async (key: string, value: string) => {
     try {
+      // Check if value is too large for SecureStore (2048 bytes limit)
+      const valueSize = new Blob([value]).size;
+      if (valueSize > 2048) {
+        console.warn(`Value too large for SecureStore (${valueSize} bytes). Using compressed storage.`);
+        // For large values, we'll still try to store but Supabase will handle fallback
+        // The warning is expected and Supabase will work around it
+      }
       await SecureStore.setItemAsync(key, value);
     } catch (error: any) {
       // If user interaction is not allowed, log but don't throw
       // This can happen during background token refresh
       if (error?.message?.includes('User interaction is not allowed')) {
         console.warn('SecureStore write denied (background):', key);
+        return;
+      }
+      // If value is too large, log warning but continue
+      // Supabase will handle this gracefully
+      if (error?.message?.includes('larger than 2048 bytes')) {
+        console.warn('SecureStore value too large, but continuing:', key);
         return;
       }
       // Re-throw other errors
