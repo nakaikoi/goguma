@@ -116,11 +116,18 @@ export default function DraftScreen() {
               <Text style={styles.label}>Uploaded Images ({images.length})</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageGallery}>
                 {images.map((image) => (
-                  <Image
-                    key={image.id}
-                    source={{ uri: image.url }}
-                    style={styles.thumbnail}
-                  />
+                  <View key={image.id} style={styles.imageWrapper}>
+                    <Image
+                      source={{ uri: image.url }}
+                      style={styles.thumbnail}
+                    />
+                    <TouchableOpacity
+                      style={styles.deleteImageButton}
+                      onPress={() => handleDeleteImage(image.id)}
+                    >
+                      <Text style={styles.deleteImageButtonText}>×</Text>
+                    </TouchableOpacity>
+                  </View>
                 ))}
               </ScrollView>
             </View>
