@@ -9,6 +9,7 @@ export interface Item {
   id: string;
   userId: string;
   status: 'draft' | 'processing' | 'ready' | 'published';
+  draftTitle?: string | null;
   createdAt: string;
   updatedAt: string;
 }

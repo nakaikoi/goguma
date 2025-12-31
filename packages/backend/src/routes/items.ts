@@ -79,6 +79,7 @@ export async function itemsRoutes(fastify: FastifyInstance) {
           id: item.id,
           userId: item.user_id,
           status: item.status,
+          draftTitle: item.draftTitle || null,
           createdAt: item.created_at,
           updatedAt: item.updated_at,
         })),

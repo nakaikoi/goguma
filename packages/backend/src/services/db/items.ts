@@ -93,10 +93,14 @@ export async function listItems(
     limit?: number;
     offset?: number;
   }
-): Promise<{ items: Item[]; total: number }> {
+): Promise<{ items: (Item & { draftTitle?: string })[]; total: number }> {
+  // Join with listing_drafts to get title
   let query = supabaseAdmin
     .from('items')
-    .select('*', { count: 'exact' })
+    .select(`
+      *,
+      listing_drafts(title)
+    `, { count: 'exact' })
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
@@ -124,12 +128,13 @@ export async function listItems(
 
   return {
     items:
-      data?.map((item) => ({
+      data?.map((item: any) => ({
         id: item.id,
         user_id: item.user_id,
         status: item.status as ItemStatus,
         created_at: item.created_at,
         updated_at: item.updated_at,
+        draftTitle: item.listing_drafts?.[0]?.title || null,
       })) || [],
     total: count || 0,
   };
