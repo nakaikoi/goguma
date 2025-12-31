@@ -2,7 +2,7 @@
  * Database service for items
  */
 
-import { supabase } from '../../config/supabase.js';
+import { supabaseAdmin } from '../../config/supabase.js';
 import { logger } from '../../config/logger.js';
 import { ItemStatus } from '@goguma/shared';
 
@@ -23,7 +23,7 @@ export interface Item {
  * Create a new item
  */
 export async function createItem(input: CreateItemInput): Promise<Item> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('items')
     .insert({
       user_id: input.userId,
@@ -53,7 +53,7 @@ export async function getItemById(
   itemId: string,
   userId: string
 ): Promise<Item | null> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('items')
     .select()
     .eq('id', itemId)
@@ -89,7 +89,7 @@ export async function listItems(
     offset?: number;
   }
 ): Promise<{ items: Item[]; total: number }> {
-  let query = supabase
+  let query = supabaseAdmin
     .from('items')
     .select('*', { count: 'exact' })
     .eq('user_id', userId)
@@ -138,7 +138,7 @@ export async function updateItemStatus(
   userId: string,
   status: ItemStatus
 ): Promise<Item> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('items')
     .update({ status })
     .eq('id', itemId)
@@ -167,7 +167,7 @@ export async function deleteItem(
   itemId: string,
   userId: string
 ): Promise<void> {
-  const { error } = await supabase
+  const { error } = await supabaseAdmin
     .from('items')
     .delete()
     .eq('id', itemId)
