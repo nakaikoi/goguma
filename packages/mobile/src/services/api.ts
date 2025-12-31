@@ -100,7 +100,11 @@ class ApiClient {
   }
 
   // Images API
-  async uploadImages(itemId: string, images: { uri: string; type: string; name: string }[]) {
+  async uploadImages(
+    itemId: string, 
+    images: { uri: string; type: string; name: string }[],
+    onProgress?: (progress: number) => void
+  ) {
     console.log('📤 Starting image upload...');
     console.log('API URL:', this.client.defaults.baseURL);
     console.log('Item ID:', itemId);
@@ -141,8 +145,16 @@ class ApiClient {
           if (progressEvent.total) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
             console.log(`📊 Upload progress: ${percentCompleted}% (${progressEvent.loaded}/${progressEvent.total} bytes)`);
+            if (onProgress) {
+              onProgress(percentCompleted);
+            }
           } else {
             console.log(`📊 Upload progress: ${progressEvent.loaded} bytes uploaded`);
+            // Estimate progress if total is unknown (e.g., during streaming)
+            if (onProgress && progressEvent.loaded > 0) {
+              // Use a conservative estimate - assume we're at least 50% done if we've uploaded something
+              onProgress(Math.min(50, Math.round((progressEvent.loaded / (1024 * 1024)) * 10)));
+            }
           }
         },
       };
@@ -151,6 +163,11 @@ class ApiClient {
       // The interceptor will remove any default Content-Type header
       const response = await this.client.post(uploadUrl, formData, config);
       console.log('✅ Upload successful:', response.data);
+      
+      // Mark as 100% complete
+      if (onProgress) {
+        onProgress(100);
+      }
       
       // Handle both 201 (sync) and 202 (async) responses
       if (response.status === 202) {

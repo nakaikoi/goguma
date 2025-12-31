@@ -32,6 +32,7 @@ export default function CameraScreen() {
   const [permission, requestPermission] = useCameraPermissions();
   const [images, setImages] = useState<{ uri: string; type: string }[]>([]);
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
 
   useEffect(() => {
     if (!permission?.granted) {
@@ -89,34 +90,25 @@ export default function CameraScreen() {
 
     try {
       setUploading(true);
+      setUploadProgress(0);
+      
       const imageData = images.map((img) => ({
         uri: img.uri,
         type: 'image/jpeg',
         name: `image-${Date.now()}.jpg`,
       }));
 
-      const result = await api.uploadImages(itemId, imageData);
+      // Upload with progress callback
+      const result = await api.uploadImages(itemId, imageData, (progress) => {
+        setUploadProgress(progress);
+      });
       
-      // Handle async upload (202 Accepted) or sync upload (201 Created)
-      if (result.message) {
-        // Async upload - images are processing in background
-        Alert.alert('Upload Started', `Uploading ${result.imageCount || imageData.length} image(s)...`, [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Draft', { itemId }),
-          },
-        ]);
-      } else {
-        // Sync upload - images are ready
-        Alert.alert('Success', 'Images uploaded! Analyzing...', [
-          {
-            text: 'OK',
-            onPress: () => navigation.navigate('Draft', { itemId }),
-          },
-        ]);
-      }
+      // Upload complete - automatically navigate to Draft screen
+      // Images are processing in background, but we can navigate immediately
+      navigation.navigate('Draft', { itemId });
     } catch (error: any) {
       Alert.alert('Upload failed', error.message || 'Failed to upload images');
+      setUploadProgress(0);
     } finally {
       setUploading(false);
     }
