@@ -94,13 +94,10 @@ export async function listItems(
     offset?: number;
   }
 ): Promise<{ items: (Item & { draftTitle?: string })[]; total: number }> {
-  // Join with listing_drafts to get title
+  // Query items
   let query = supabaseAdmin
     .from('items')
-    .select(`
-      *,
-      listing_drafts(title)
-    `, { count: 'exact' })
+    .select('*', { count: 'exact' })
     .eq('user_id', userId)
     .order('created_at', { ascending: false });
 
@@ -126,35 +123,40 @@ export async function listItems(
     throw new Error(`Failed to list items: ${error.message}`);
   }
 
-  // Log first item to debug structure
-  if (data && data.length > 0) {
-    logger.info({ sampleItem: data[0] }, 'Sample item structure from query');
+  if (!data || data.length === 0) {
+    return { items: [], total: count || 0 };
+  }
+
+  // Get item IDs
+  const itemIds = data.map((item) => item.id);
+
+  // Fetch drafts for these items
+  const { data: drafts, error: draftsError } = await supabaseAdmin
+    .from('listing_drafts')
+    .select('item_id, title')
+    .in('item_id', itemIds);
+
+  if (draftsError) {
+    logger.warn({ error: draftsError }, 'Failed to fetch drafts, continuing without titles');
+  }
+
+  // Create a map of item_id -> title
+  const titleMap = new Map<string, string>();
+  if (drafts) {
+    drafts.forEach((draft: any) => {
+      titleMap.set(draft.item_id, draft.title);
+    });
   }
 
   return {
-    items:
-      data?.map((item: any) => {
-        // Handle both array and object responses from Supabase
-        // Since item_id is unique, Supabase might return as object or array
-        let draftTitle = null;
-        if (item.listing_drafts) {
-          if (Array.isArray(item.listing_drafts)) {
-            draftTitle = item.listing_drafts[0]?.title || null;
-          } else {
-            // It's an object (one-to-one relationship)
-            draftTitle = item.listing_drafts.title || null;
-          }
-        }
-
-        return {
-          id: item.id,
-          user_id: item.user_id,
-          status: item.status as ItemStatus,
-          created_at: item.created_at,
-          updated_at: item.updated_at,
-          draftTitle,
-        };
-      }) || [],
+    items: data.map((item) => ({
+      id: item.id,
+      user_id: item.user_id,
+      status: item.status as ItemStatus,
+      created_at: item.created_at,
+      updated_at: item.updated_at,
+      draftTitle: titleMap.get(item.id) || null,
+    })),
     total: count || 0,
   };
 }
