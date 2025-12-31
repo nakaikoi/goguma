@@ -44,10 +44,23 @@ export async function imagesRoutes(fastify: FastifyInstance) {
       request: FastifyRequest<{ Params: { id: string } }>,
       reply: FastifyReply
     ) => {
+      const startTime = Date.now();
+      request.log.info({ 
+        itemId: request.params.id, 
+        method: request.method,
+        url: request.url,
+        headers: {
+          'content-type': request.headers['content-type'],
+          'content-length': request.headers['content-length'],
+        }
+      }, 'Image upload request received');
+      
       try {
         if (!request.user) {
           throw new AppError('UNAUTHORIZED', 'User not authenticated', 401);
         }
+
+        request.log.info({ userId: request.user.id }, 'User authenticated');
 
         // Verify item exists and belongs to user
         const item = await getItemById(request.params.id, request.user.id);
@@ -55,26 +68,27 @@ export async function imagesRoutes(fastify: FastifyInstance) {
           throw new AppError('NOT_FOUND', 'Item not found', 404);
         }
 
+        request.log.info('Item verified, starting multipart parse...');
+
         const uploadedImages = [];
-        
-        request.log.info('Starting to parse multipart request...');
         
         // Parse multipart files directly from request
         // This works better with React Native FormData than saveRequestFiles()
         const data: any[] = [];
-        const parts = request.parts();
         
-        request.log.info('Got parts iterator, starting to iterate...');
+        request.log.info('Getting parts iterator...');
+        const parts = request.parts();
+        request.log.info('Parts iterator obtained, starting iteration...');
         
         for await (const part of parts) {
-          request.log.debug({ partType: part.type, fieldname: part.fieldname }, 'Processing part');
+          request.log.info({ partType: part.type, fieldname: part.fieldname, filename: part.filename }, 'Processing part');
           if (part.type === 'file') {
             data.push(part);
             request.log.info({ filename: part.filename, count: data.length }, 'File part received');
           }
         }
         
-        request.log.info({ fileCount: data.length }, 'Files received from multipart');
+        request.log.info({ fileCount: data.length, elapsed: `${Date.now() - startTime}ms` }, 'Files received from multipart');
         
         if (data.length === 0) {
           throw new AppError('BAD_REQUEST', 'No files found in request', 400);

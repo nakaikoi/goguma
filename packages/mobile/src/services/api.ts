@@ -109,12 +109,21 @@ class ApiClient {
     const session = await supabase.auth.getSession();
     const token = session.data.session?.access_token;
 
+    console.log('Uploading images to:', `${this.client.defaults.baseURL}/items/${itemId}/images`);
+    console.log('Image count:', images.length);
+    
     const response = await this.client.post(`/items/${itemId}/images`, formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
         ...(token && { Authorization: `Bearer ${token}` }),
       },
       timeout: 120000, // 2 minutes specifically for image uploads
+      onUploadProgress: (progressEvent) => {
+        if (progressEvent.total) {
+          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+          console.log(`Upload progress: ${percentCompleted}%`);
+        }
+      },
     });
     return response.data.data;
   }
