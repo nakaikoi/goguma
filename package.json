@@ -9,6 +9,7 @@
   "scripts": {
     "dev:backend": "npm run dev --workspace=packages/backend",
     "dev:mobile": "npm start --workspace=packages/mobile",
+    "clear-ports": "bash scripts/clear-ports.sh",
     "build": "npm run build --workspaces",
     "test": "npm run test --workspaces",
     "lint": "npm run lint --workspaces"
