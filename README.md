@@ -10,42 +10,39 @@ Reduce the friction of selling items online by turning photos into high-quality 
 
 ## 🚀 Quick Start
 
-### Prerequisites
+**👉 See [GETTING_STARTED.md](./docs/GETTING_STARTED.md) for complete setup instructions!**
 
-- Node.js 20+
-- npm/yarn/pnpm
-- Expo CLI (`npm install -g expo-cli`)
-- Supabase account
-- eBay Developer account
+### Quick Overview
 
-### Setup
+1. **Install dependencies:**
+   ```bash
+   npm install
+   ```
 
-1. Clone the repository:
-```bash
-git clone git@github.com:nakaikoi/goguma.git
-cd goguma
-```
+2. **Set up Supabase:**
+   - Create project at [supabase.com](https://supabase.com)
+   - Run migrations from `docs/QUICK_MIGRATION.sql`
+   - Create `item-images` storage bucket
 
-2. Install dependencies (from root):
-```bash
-npm install
-```
-This installs dependencies for all packages in the monorepo.
+3. **Configure environment:**
+   - Backend: `packages/backend/.env` (see `.env.example`)
+   - Mobile: `packages/mobile/.env` (see `.env.example`)
 
-3. Set up environment variables (see `.env.example` in each package)
+4. **Start services:**
+   ```bash
+   # Terminal 1: Backend
+   cd packages/backend && npm run dev
+   
+   # Terminal 2: Mobile
+   cd packages/mobile && npm start
+   ```
 
-4. Start development:
-```bash
-# From root - run backend
-npm run dev:backend
+5. **Run on phone:**
+   - Install Expo Go app
+   - Scan QR code from mobile terminal
+   - Make sure phone and computer are on same WiFi!
 
-# From root - run mobile app
-npm run dev:mobile
-
-# Or run from individual packages:
-cd packages/backend && npm run dev
-cd packages/mobile && npm start
-```
+**For detailed instructions, see [GETTING_STARTED.md](./docs/GETTING_STARTED.md)**
 
 ## 📁 Project Structure
 
@@ -74,13 +71,14 @@ goguma/
 
 ## 📚 Documentation
 
+- **[Getting Started](./docs/GETTING_STARTED.md)** ⭐ - Complete setup guide
 - [Product Specification](./docs/product-specification.md) - Complete product requirements
 - [Development Gameplan](./docs/DEVELOPMENT_GAMEPLAN.md) - Step-by-step development plan
 - [API Design](./docs/API_DESIGN.md) - API endpoints and schemas
 - [Database Schema](./docs/DATABASE_SCHEMA.md) - Complete database design
-- [Progress Review](./docs/PROGRESS_REVIEW.md) - Current status and next steps
 - [Supabase Setup](./docs/SUPABASE_SETUP.md) - Supabase configuration guide
 - [Environment Variables](./docs/ENVIRONMENT_VARIABLES.md) - Configuration reference
+- [Troubleshooting](./docs/TROUBLESHOOTING.md) - Common issues and fixes
 
 ## 🛠 Tech Stack
 
