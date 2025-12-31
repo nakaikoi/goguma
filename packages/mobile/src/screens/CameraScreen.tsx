@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { api } from '../services/api';
@@ -26,6 +27,7 @@ export default function CameraScreen() {
   const route = useRoute<CameraScreenRouteProp>();
   const navigation = useNavigation();
   const { itemId } = route.params;
+  const insets = useSafeAreaInsets();
 
   const [permission, requestPermission] = useCameraPermissions();
   const [images, setImages] = useState<{ uri: string; type: string }[]>([]);
@@ -109,7 +111,7 @@ export default function CameraScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>← Back</Text>
         </TouchableOpacity>

@@ -14,6 +14,7 @@ import {
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useItemsStore } from '../store/items-store';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
@@ -23,6 +24,7 @@ export default function DraftScreen() {
   const route = useRoute<DraftScreenRouteProp>();
   const navigation = useNavigation();
   const { itemId } = route.params;
+  const insets = useSafeAreaInsets();
 
   const { currentDraft, loading, fetchDraft, analyzeItem } = useItemsStore();
   const [analyzing, setAnalyzing] = useState(false);
@@ -57,7 +59,7 @@ export default function DraftScreen() {
   if (!currentDraft) {
     return (
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Text style={styles.backButton}>← Back</Text>
           </TouchableOpacity>
@@ -80,7 +82,7 @@ export default function DraftScreen() {
 
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: Math.max(insets.top, 16) }]}>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <Text style={styles.backButton}>← Back</Text>
         </TouchableOpacity>
