@@ -68,13 +68,12 @@ export default function HomeScreen() {
         onPress={() => navigation.navigate('Draft', { itemId: item.id })}
       >
         <View style={styles.itemInfo}>
-          {item.draftTitle ? (
+          {item.draftTitle && (
             <Text style={styles.itemTitle} numberOfLines={2}>
               {item.draftTitle}
             </Text>
-          ) : (
-            <Text style={styles.itemStatus}>{item.status}</Text>
           )}
+          <Text style={styles.itemStatus}>{item.status}</Text>
           <Text style={styles.itemDate}>
             {new Date(item.createdAt).toLocaleDateString()}
           </Text>
@@ -173,14 +172,15 @@ const styles = StyleSheet.create({
   itemTitle: {
     fontSize: 16,
     fontWeight: '600',
-    marginBottom: 4,
+    marginBottom: 6,
     color: '#000',
   },
   itemStatus: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 14,
+    fontWeight: '500',
     marginBottom: 4,
     color: '#666',
+    textTransform: 'capitalize',
   },
   itemDate: {
     fontSize: 14,
