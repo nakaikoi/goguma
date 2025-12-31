@@ -166,12 +166,67 @@ export async function updateItemStatus(
 }
 
 /**
- * Delete item
+ * Delete item and all related data (images, drafts, storage files)
  */
 export async function deleteItem(
   itemId: string,
   userId: string
 ): Promise<void> {
+  // Verify item exists and belongs to user
+  const item = await getItemById(itemId, userId);
+  if (!item) {
+    throw new Error('Item not found or access denied');
+  }
+
+  // Delete related images from database and storage
+  const { data: images, error: imagesError } = await supabaseAdmin
+    .from('item_images')
+    .select('storage_path')
+    .eq('item_id', itemId);
+
+  if (imagesError) {
+    logger.error({ error: imagesError, itemId }, 'Failed to fetch images for deletion');
+  } else if (images && images.length > 0) {
+    // Delete images from storage
+    const storagePaths = images.map((img) => img.storage_path);
+    const { error: storageError } = await supabaseAdmin.storage
+      .from('item-images')
+      .remove(storagePaths);
+
+    if (storageError) {
+      logger.error({ error: storageError, itemId, storagePaths }, 'Failed to delete images from storage');
+      // Continue with database deletion even if storage deletion fails
+    } else {
+      logger.info({ itemId, imageCount: images.length }, 'Deleted images from storage');
+    }
+
+    // Delete images from database
+    const { error: deleteImagesError } = await supabaseAdmin
+      .from('item_images')
+      .delete()
+      .eq('item_id', itemId);
+
+    if (deleteImagesError) {
+      logger.error({ error: deleteImagesError, itemId }, 'Failed to delete images from database');
+    } else {
+      logger.info({ itemId, imageCount: images.length }, 'Deleted images from database');
+    }
+  }
+
+  // Delete related drafts
+  const { error: deleteDraftsError } = await supabaseAdmin
+    .from('listing_drafts')
+    .delete()
+    .eq('item_id', itemId);
+
+  if (deleteDraftsError) {
+    logger.error({ error: deleteDraftsError, itemId }, 'Failed to delete drafts');
+    // Continue with item deletion even if draft deletion fails
+  } else {
+    logger.info({ itemId }, 'Deleted drafts from database');
+  }
+
+  // Finally, delete the item itself
   const { error } = await supabaseAdmin
     .from('items')
     .delete()
@@ -182,5 +237,7 @@ export async function deleteItem(
     logger.error({ error, itemId, userId }, 'Failed to delete item');
     throw new Error(`Failed to delete item: ${error.message}`);
   }
+
+  logger.info({ itemId, userId }, 'Item and all related data deleted successfully');
 }
 

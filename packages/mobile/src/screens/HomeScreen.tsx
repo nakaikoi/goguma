@@ -10,6 +10,7 @@ import {
   StyleSheet,
   FlatList,
   ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
@@ -24,7 +25,7 @@ export default function HomeScreen() {
   const navigation = useNavigation<NavigationProp>();
   const insets = useSafeAreaInsets();
   const { signOut } = useAuthStore();
-  const { items, loading, fetchItems, createItem } = useItemsStore();
+  const { items, loading, fetchItems, createItem, deleteItem } = useItemsStore();
 
   useEffect(() => {
     fetchItems();
@@ -39,16 +40,47 @@ export default function HomeScreen() {
     }
   };
 
+  const handleDeleteItem = (itemId: string) => {
+    Alert.alert(
+      'Delete Listing',
+      'Are you sure you want to delete this listing? This will permanently delete the item, images, and draft.',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              await deleteItem(itemId);
+            } catch (error: any) {
+              Alert.alert('Error', error.message || 'Failed to delete listing', [{ text: 'Cancel' }]);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const renderItem = ({ item }: { item: Item }) => (
-    <TouchableOpacity
-      style={styles.itemCard}
-      onPress={() => navigation.navigate('Draft', { itemId: item.id })}
-    >
-      <Text style={styles.itemStatus}>{item.status}</Text>
-      <Text style={styles.itemDate}>
-        {new Date(item.createdAt).toLocaleDateString()}
-      </Text>
-    </TouchableOpacity>
+    <View style={styles.itemCard}>
+      <TouchableOpacity
+        style={styles.itemContent}
+        onPress={() => navigation.navigate('Draft', { itemId: item.id })}
+      >
+        <View style={styles.itemInfo}>
+          <Text style={styles.itemStatus}>{item.status}</Text>
+          <Text style={styles.itemDate}>
+            {new Date(item.createdAt).toLocaleDateString()}
+          </Text>
+        </View>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.deleteButton}
+        onPress={() => handleDeleteItem(item.id)}
+      >
+        <Text style={styles.deleteButtonText}>🗑️</Text>
+      </TouchableOpacity>
+    </View>
   );
 
   return (
@@ -116,12 +148,21 @@ const styles = StyleSheet.create({
   },
   itemCard: {
     backgroundColor: '#fff',
-    padding: 16,
     marginHorizontal: 16,
     marginTop: 12,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: '#eee',
+    flexDirection: 'row',
+    alignItems: 'center',
+    overflow: 'hidden',
+  },
+  itemContent: {
+    flex: 1,
+    padding: 16,
+  },
+  itemInfo: {
+    flex: 1,
   },
   itemStatus: {
     fontSize: 16,
@@ -131,6 +172,16 @@ const styles = StyleSheet.create({
   itemDate: {
     fontSize: 14,
     color: '#666',
+  },
+  deleteButton: {
+    padding: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderLeftWidth: 1,
+    borderLeftColor: '#eee',
+  },
+  deleteButtonText: {
+    fontSize: 20,
   },
   empty: {
     flex: 1,

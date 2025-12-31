@@ -45,6 +45,7 @@ interface ItemsState {
   fetchItem: (itemId: string) => Promise<void>;
   analyzeItem: (itemId: string) => Promise<void>;
   fetchDraft: (itemId: string) => Promise<void>;
+  deleteItem: (itemId: string) => Promise<void>;
   clearCurrentItem: () => void;
 }
 
@@ -112,6 +113,26 @@ export const useItemsStore = create<ItemsState>((set, get) => ({
       set({ currentDraft: draft, loading: false });
     } catch (error: any) {
       set({ error: error.message, loading: false });
+    }
+  },
+
+  deleteItem: async (itemId: string) => {
+    try {
+      set({ loading: true, error: null });
+      await api.deleteItem(itemId);
+      // Remove from local state
+      set((state) => ({
+        items: state.items.filter((item) => item.id !== itemId),
+        loading: false,
+      }));
+      // Clear current item if it was deleted
+      const currentItem = get().currentItem;
+      if (currentItem && currentItem.id === itemId) {
+        set({ currentItem: null, currentDraft: null });
+      }
+    } catch (error: any) {
+      set({ error: error.message, loading: false });
+      throw error;
     }
   },
 
