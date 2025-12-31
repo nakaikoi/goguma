@@ -140,15 +140,16 @@ class ApiClient {
         },
       };
       
-      // Override axios default transformRequest to ensure FormData is passed through correctly
-      // @ts-ignore - React Native FormData needs special handling
-      config.transformRequest = [(data) => {
-        // Return FormData as-is - don't let axios try to stringify it
-        if (data instanceof FormData) {
-          return data;
-        }
-        return data;
-      }];
+      // React Native FormData needs special handling with axios
+      // We need to ensure axios doesn't try to transform it and sets Content-Type correctly
+      // @ts-ignore - transformRequest is a valid axios config option
+      config.transformRequest = [];
+      // @ts-ignore - React Native FormData should be passed as-is
+      config.transformResponse = [];
+      
+      // Manually ensure Content-Type is not set (axios will add it with boundary for FormData)
+      delete config.headers['Content-Type'];
+      delete config.headers['content-type'];
       
       const response = await this.client.post(uploadUrl, formData, config);
       console.log('✅ Upload successful:', response.data);
