@@ -143,6 +143,17 @@ export default function CameraScreen() {
         )}
       </ScrollView>
 
+      {uploading && (
+        <View style={styles.progressContainer}>
+          <View style={styles.progressBar}>
+            <View style={[styles.progressFill, { width: `${uploadProgress}%` }]} />
+          </View>
+          <Text style={styles.progressText}>
+            {uploadProgress < 100 ? `Uploading... ${uploadProgress}%` : 'Upload complete!'}
+          </Text>
+        </View>
+      )}
+
       <View style={styles.actions}>
         <TouchableOpacity style={styles.button} onPress={pickFromLibrary}>
           <Text style={styles.buttonText}>Choose from Library</Text>
@@ -259,6 +270,29 @@ const styles = StyleSheet.create({
   },
   buttonDisabled: {
     opacity: 0.6,
+  },
+  progressContainer: {
+    padding: 16,
+    backgroundColor: '#f5f5f5',
+    borderTopWidth: 1,
+    borderTopColor: '#eee',
+  },
+  progressBar: {
+    height: 8,
+    backgroundColor: '#e0e0e0',
+    borderRadius: 4,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: '#007AFF',
+    borderRadius: 4,
+  },
+  progressText: {
+    fontSize: 14,
+    color: '#666',
+    textAlign: 'center',
   },
 });
 
