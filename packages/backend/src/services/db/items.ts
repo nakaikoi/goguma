@@ -5,6 +5,7 @@
 import { supabaseAdmin } from '../../config/supabase.js';
 import { logger } from '../../config/logger.js';
 import { ItemStatus } from '@goguma/shared';
+import { ensureUserExists } from './users.js';
 
 export interface CreateItemInput {
   userId: string;
@@ -23,6 +24,9 @@ export interface Item {
  * Create a new item
  */
 export async function createItem(input: CreateItemInput): Promise<Item> {
+  // Ensure user exists in users table (required for foreign key)
+  await ensureUserExists(input.userId);
+
   const { data, error } = await supabaseAdmin
     .from('items')
     .insert({
