@@ -106,111 +106,118 @@ export async function imagesRoutes(fastify: FastifyInstance) {
           throw new AppError('BAD_REQUEST', 'No files found in request', 400);
         }
 
-        // Process images - simplified to avoid timeout
-        // For now, skip heavy processing and just upload
-        for (let i = 0; i < data.length; i++) {
-          const file = data[i];
-          const imageId = randomUUID();
+        // Process images asynchronously to avoid timeout
+        // Send immediate response and process in background
+        const processImagesAsync = async () => {
+          const processedImages = [];
+          
+          for (let i = 0; i < data.length; i++) {
+            const file = data[i];
+            const imageId = randomUUID();
 
-          try {
-            // Validate file
-            // For multipart parts, mimetype and encoding are on the part object
-            const mimetype = file.mimetype || 'image/jpeg';
-            
-            request.log.info({ 
-              fileProps: Object.keys(file),
-              hasFile: !!file.file,
-              hasToBuffer: typeof file.toBuffer === 'function',
-              mimetype,
-            }, 'File part properties');
-
-            // Read file buffer - Fastify multipart parts have different APIs
-            let buffer: Buffer;
-            if (typeof file.toBuffer === 'function') {
-              buffer = await file.toBuffer();
-            } else if (file.file) {
-              // Read from file stream
-              const chunks: Buffer[] = [];
-              for await (const chunk of file.file) {
-                chunks.push(chunk);
-              }
-              buffer = Buffer.concat(chunks);
-            } else {
-              throw new Error('Unable to read file data from multipart part');
-            }
-            
-            const fileSize = buffer.length;
-            validateImageFile(mimetype, fileSize);
-
-            // Check if buffer is valid
-            if (!buffer || buffer.length === 0) {
-              throw new Error('File buffer is empty or invalid');
-            }
-
-            request.log.info(
-              { 
-                filename: file.filename, 
-                size: buffer.length, 
-                mimetype: file.mimetype,
-                fieldname: file.fieldname,
-              },
-              'Processing image file'
-            );
-
-            // For now, just upload original - skip processing to avoid timeout
-            // TODO: Add background job for image processing
-            const originalPath = await uploadImage({
-              userId: request.user.id,
-              itemId: request.params.id,
-              imageId,
-              buffer,
-              filename: file.filename || 'image.jpg',
-              contentType: mimetype,
-            });
-
-            // Create database record (use original path for now)
-            const imageRecord = await createImage({
-              itemId: request.params.id,
-              storagePath: originalPath,
-              orderIndex: i,
-            });
-
-            // Get signed URL
-            const url = await getImageUrl(originalPath);
-
-            uploadedImages.push({
-              id: imageRecord.id,
-              itemId: imageRecord.item_id,
-              storagePath: imageRecord.storage_path,
-              orderIndex: imageRecord.order_index,
-              url,
-              createdAt: imageRecord.created_at,
-            });
-          } catch (error) {
-            // Log error but continue with other images
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            const errorStack = error instanceof Error ? error.stack : undefined;
-            request.log.error(
-              {
-                error: errorMessage,
-                errorStack,
+            try {
+              request.log.info({ 
+                index: i,
                 filename: file.filename,
                 fieldname: file.fieldname,
                 mimetype: file.mimetype,
-                size: file.file?.bytesRead || 0,
-              },
-              'Failed to process image'
-            );
-            // Don't throw - allow other images to be processed
+              }, `Processing image ${i + 1}/${data.length}`);
+
+              // Validate file
+              const mimetype = file.mimetype || 'image/jpeg';
+              
+              // Read file buffer - Fastify multipart parts have different APIs
+              const readStartTime = Date.now();
+              let buffer: Buffer;
+              if (typeof file.toBuffer === 'function') {
+                buffer = await file.toBuffer();
+              } else if (file.file) {
+                // Read from file stream
+                const chunks: Buffer[] = [];
+                for await (const chunk of file.file) {
+                  chunks.push(chunk);
+                }
+                buffer = Buffer.concat(chunks);
+              } else {
+                throw new Error('Unable to read file data from multipart part');
+              }
+              
+              const readTime = Date.now() - readStartTime;
+              request.log.info({ size: buffer.length, readTime: `${readTime}ms` }, 'File buffer read');
+              
+              const fileSize = buffer.length;
+              validateImageFile(mimetype, fileSize);
+
+              if (!buffer || buffer.length === 0) {
+                throw new Error('File buffer is empty or invalid');
+              }
+
+              // Upload to Supabase
+              const uploadStartTime = Date.now();
+              const originalPath = await uploadImage({
+                userId: request.user.id,
+                itemId: request.params.id,
+                imageId,
+                buffer,
+                filename: file.filename || 'image.jpg',
+                contentType: mimetype,
+              });
+              const uploadTime = Date.now() - uploadStartTime;
+              request.log.info({ uploadTime: `${uploadTime}ms` }, 'Supabase upload completed');
+
+              // Create database record
+              const imageRecord = await createImage({
+                itemId: request.params.id,
+                storagePath: originalPath,
+                orderIndex: i,
+              });
+
+              // Get signed URL
+              const url = await getImageUrl(originalPath);
+
+              processedImages.push({
+                id: imageRecord.id,
+                itemId: imageRecord.item_id,
+                storagePath: imageRecord.storage_path,
+                orderIndex: imageRecord.order_index,
+                url,
+                createdAt: imageRecord.created_at,
+              });
+              
+              request.log.info({ imageId: imageRecord.id }, `Image ${i + 1} processed successfully`);
+            } catch (error) {
+              const errorMessage = error instanceof Error ? error.message : String(error);
+              request.log.error(
+                {
+                  error: errorMessage,
+                  filename: file.filename,
+                  index: i,
+                },
+                `Failed to process image ${i + 1}`
+              );
+            }
           }
-        }
 
-        if (uploadedImages.length === 0) {
-          throw new AppError('BAD_REQUEST', 'No images were successfully uploaded', 400);
-        }
+          request.log.info(
+            { 
+              total: data.length, 
+              successful: processedImages.length,
+              elapsed: `${Date.now() - startTime}ms`
+            },
+            'Image processing completed'
+          );
+        };
 
-        return reply.code(201).send({
-          data: uploadedImages,
+        // Start processing in background (don't await)
+        processImagesAsync().catch((error) => {
+          request.log.error({ error }, 'Background image processing failed');
+        });
+
+        // Return immediate response
+        return reply.code(202).send({
+          message: 'Image upload accepted, processing in background',
+          itemId: request.params.id,
+          imageCount: data.length,
         });
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
