@@ -26,6 +26,9 @@ export async function uploadImage(
   const storagePath = `${userId}/${itemId}/original_${imageId}.${filename.split('.').pop() || 'jpg'}`;
 
   try {
+    logger.info({ storagePath, size: buffer.length }, 'Starting Supabase upload...');
+    const startTime = Date.now();
+    
     const { data, error } = await supabaseAdmin.storage
       .from('item-images')
       .upload(storagePath, buffer, {
@@ -33,12 +36,15 @@ export async function uploadImage(
         upsert: false,
       });
 
+    const uploadTime = Date.now() - startTime;
+    logger.info({ storagePath, uploadTime: `${uploadTime}ms` }, 'Supabase upload completed');
+
     if (error) {
       logger.error({ error, storagePath }, 'Failed to upload image');
       throw new Error(`Failed to upload image: ${error.message}`);
     }
 
-    logger.debug({ storagePath, size: buffer.length }, 'Image uploaded');
+    logger.info({ storagePath, size: buffer.length }, 'Image uploaded successfully');
 
     return storagePath;
   } catch (error) {

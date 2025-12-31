@@ -57,14 +57,20 @@ export async function imagesRoutes(fastify: FastifyInstance) {
 
         const uploadedImages = [];
         
+        request.log.info('Starting to parse multipart request...');
+        
         // Parse multipart files directly from request
         // This works better with React Native FormData than saveRequestFiles()
         const data: any[] = [];
         const parts = request.parts();
         
+        request.log.info('Got parts iterator, starting to iterate...');
+        
         for await (const part of parts) {
+          request.log.debug({ partType: part.type, fieldname: part.fieldname }, 'Processing part');
           if (part.type === 'file') {
             data.push(part);
+            request.log.info({ filename: part.filename, count: data.length }, 'File part received');
           }
         }
         
