@@ -216,9 +216,10 @@ export async function imagesRoutes(fastify: FastifyInstance) {
             { 
               total: fileBuffers.length, 
               successful: processedImages.length,
-              elapsed: `${Date.now() - startTime}ms`
+              elapsed: `${Date.now() - startTime}ms`,
+              itemId: request.params.id,
             },
-            'Image processing completed'
+            '✅ Image processing completed - all images uploaded and saved'
           );
         };
 
