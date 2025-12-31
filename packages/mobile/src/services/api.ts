@@ -151,7 +151,6 @@ class ApiClient {
       }];
       
       const response = await this.client.post(uploadUrl, formData, config);
-        timeout: 120000, // 2 minutes specifically for image uploads
         onUploadProgress: (progressEvent) => {
           if (progressEvent.total) {
             const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
