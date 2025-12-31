@@ -68,12 +68,14 @@ export async function imagesRoutes(fastify: FastifyInstance) {
           }
         }
         
-        request.log.debug({ fileCount: data.length }, 'Files received from multipart');
+        request.log.info({ fileCount: data.length }, 'Files received from multipart');
         
         if (data.length === 0) {
           throw new AppError('BAD_REQUEST', 'No files found in request', 400);
         }
 
+        // Process images - simplified to avoid timeout
+        // For now, skip heavy processing and just upload
         for (let i = 0; i < data.length; i++) {
           const file = data[i];
           const imageId = randomUUID();
@@ -94,7 +96,7 @@ export async function imagesRoutes(fastify: FastifyInstance) {
               throw new Error('File buffer is empty or invalid');
             }
 
-            request.log.debug(
+            request.log.info(
               { 
                 filename: file.filename, 
                 size: buffer.length, 
@@ -104,47 +106,26 @@ export async function imagesRoutes(fastify: FastifyInstance) {
               'Processing image file'
             );
 
-            // Process image (resize, compress, strip EXIF)
-            const processedBuffer = await processImage(buffer);
-            const thumbnailBuffer = await generateThumbnail(buffer);
-
-            // Upload to storage
+            // For now, just upload original - skip processing to avoid timeout
+            // TODO: Add background job for image processing
             const originalPath = await uploadImage({
               userId: request.user.id,
               itemId: request.params.id,
               imageId,
               buffer,
               filename: file.filename || 'image.jpg',
-              contentType: file.mimetype,
+              contentType: mimetype,
             });
 
-            const compressedPath = await uploadProcessedImage({
-              userId: request.user.id,
-              itemId: request.params.id,
-              imageId,
-              buffer: processedBuffer,
-              filename: file.filename || 'image.jpg',
-              contentType: 'image/jpeg',
-            });
-
-            const thumbnailPath = await uploadThumbnail({
-              userId: request.user.id,
-              itemId: request.params.id,
-              imageId,
-              buffer: thumbnailBuffer,
-              filename: 'thumbnail.jpg',
-              contentType: 'image/jpeg',
-            });
-
-            // Create database record (use compressed path as main path)
+            // Create database record (use original path for now)
             const imageRecord = await createImage({
               itemId: request.params.id,
-              storagePath: compressedPath,
+              storagePath: originalPath,
               orderIndex: i,
             });
 
             // Get signed URL
-            const url = await getImageUrl(compressedPath);
+            const url = await getImageUrl(originalPath);
 
             uploadedImages.push({
               id: imageRecord.id,
