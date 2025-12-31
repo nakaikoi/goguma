@@ -151,7 +151,15 @@ class ApiClient {
       // The interceptor will remove any default Content-Type header
       const response = await this.client.post(uploadUrl, formData, config);
       console.log('✅ Upload successful:', response.data);
-      return response.data.data;
+      
+      // Handle both 201 (sync) and 202 (async) responses
+      if (response.status === 202) {
+        // Async upload - return the message
+        return response.data;
+      } else {
+        // Sync upload - return the data array
+        return response.data.data;
+      }
     } catch (error: any) {
       console.error('❌ Upload failed:', error.message);
       console.error('Error details:', {

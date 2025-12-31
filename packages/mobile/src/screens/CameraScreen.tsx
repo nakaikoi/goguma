@@ -95,13 +95,26 @@ export default function CameraScreen() {
         name: `image-${Date.now()}.jpg`,
       }));
 
-      await api.uploadImages(itemId, imageData);
-      Alert.alert('Success', 'Images uploaded! Analyzing...', [
-        {
-          text: 'OK',
-          onPress: () => navigation.navigate('Draft', { itemId }),
-        },
-      ]);
+      const result = await api.uploadImages(itemId, imageData);
+      
+      // Handle async upload (202 Accepted) or sync upload (201 Created)
+      if (result.message) {
+        // Async upload - images are processing in background
+        Alert.alert('Upload Started', `Uploading ${result.imageCount || imageData.length} image(s)...`, [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('Draft', { itemId }),
+          },
+        ]);
+      } else {
+        // Sync upload - images are ready
+        Alert.alert('Success', 'Images uploaded! Analyzing...', [
+          {
+            text: 'OK',
+            onPress: () => navigation.navigate('Draft', { itemId }),
+          },
+        ]);
+      }
     } catch (error: any) {
       Alert.alert('Upload failed', error.message || 'Failed to upload images');
     } finally {
