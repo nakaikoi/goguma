@@ -104,12 +104,31 @@ export async function imagesRoutes(fastify: FastifyInstance) {
             // Validate file
             // For multipart parts, mimetype and encoding are on the part object
             const mimetype = file.mimetype || 'image/jpeg';
-            const fileSize = file.file ? file.file.bytesRead : 0;
             
-            validateImageFile(mimetype, fileSize);
+            request.log.info({ 
+              fileProps: Object.keys(file),
+              hasFile: !!file.file,
+              hasToBuffer: typeof file.toBuffer === 'function',
+              mimetype,
+            }, 'File part properties');
 
-            // Read file buffer
-            const buffer = await file.toBuffer();
+            // Read file buffer - Fastify multipart parts have different APIs
+            let buffer: Buffer;
+            if (typeof file.toBuffer === 'function') {
+              buffer = await file.toBuffer();
+            } else if (file.file) {
+              // Read from file stream
+              const chunks: Buffer[] = [];
+              for await (const chunk of file.file) {
+                chunks.push(chunk);
+              }
+              buffer = Buffer.concat(chunks);
+            } else {
+              throw new Error('Unable to read file data from multipart part');
+            }
+            
+            const fileSize = buffer.length;
+            validateImageFile(mimetype, fileSize);
 
             // Check if buffer is valid
             if (!buffer || buffer.length === 0) {
