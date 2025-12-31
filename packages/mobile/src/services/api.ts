@@ -97,7 +97,8 @@ class ApiClient {
     const formData = new FormData();
     images.forEach((image, index) => {
       // React Native FormData format
-      formData.append('images[]', {
+      // Fastify multipart expects files with the same field name
+      formData.append('images', {
         uri: image.uri,
         type: image.type || 'image/jpeg',
         name: image.name || `image-${index}.jpg`,
