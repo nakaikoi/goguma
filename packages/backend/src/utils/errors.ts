@@ -51,11 +51,23 @@ export function handleError(error: unknown, reply: FastifyReply): void {
   }
 
   // Unknown error
-  logger.error({ error }, 'Unhandled error');
+  const errorMessage = error instanceof Error ? error.message : String(error);
+  const errorStack = error instanceof Error ? error.stack : undefined;
+  logger.error(
+    {
+      error: errorMessage,
+      errorStack,
+      errorType: error?.constructor?.name,
+      errorString: String(error),
+    },
+    'Unhandled error'
+  );
   return reply.code(500).send({
     error: {
       code: 'INTERNAL_ERROR',
       message: 'An unexpected error occurred',
+      // Include error message in development
+      ...(process.env.NODE_ENV === 'development' && { details: errorMessage }),
     },
   });
 }
