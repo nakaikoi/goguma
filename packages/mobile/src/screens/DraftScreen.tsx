@@ -11,11 +11,13 @@ import {
   ScrollView,
   ActivityIndicator,
   Alert,
+  Image,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RouteProp } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useItemsStore } from '../store/items-store';
+import { api } from '../services/api';
 import type { RootStackParamList } from '../navigation/AppNavigator';
 
 type DraftScreenRouteProp = RouteProp<RootStackParamList, 'Draft'>;
@@ -28,18 +30,36 @@ export default function DraftScreen() {
 
   const { currentDraft, loading, fetchDraft, analyzeItem } = useItemsStore();
   const [analyzing, setAnalyzing] = useState(false);
+  const [images, setImages] = useState<Array<{ id: string; url: string; orderIndex: number }>>([]);
+  const [loadingImages, setLoadingImages] = useState(false);
 
   useEffect(() => {
     fetchDraft(itemId);
+    fetchImages();
   }, [itemId]);
+
+  const fetchImages = async () => {
+    try {
+      setLoadingImages(true);
+      const imageList = await api.getItemImages(itemId);
+      setImages(imageList);
+    } catch (error: any) {
+      console.error('Failed to fetch images:', error);
+      // Don't show error - images might not be uploaded yet
+    } finally {
+      setLoadingImages(false);
+    }
+  };
 
   const handleAnalyze = async () => {
     try {
       setAnalyzing(true);
       await analyzeItem(itemId);
-      Alert.alert('Success', 'AI analysis completed!');
+      // Refresh images after analysis
+      await fetchImages();
+      Alert.alert('Success', 'AI analysis completed!', [{ text: 'Cancel' }]);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to analyze item');
+      Alert.alert('Error', error.message || 'Failed to analyze item', [{ text: 'Cancel' }]);
     } finally {
       setAnalyzing(false);
     }
@@ -67,15 +87,50 @@ export default function DraftScreen() {
           <View style={{ width: 60 }} />
         </View>
 
-        <View style={styles.center}>
-          <Text style={styles.emptyText}>No draft yet</Text>
-          <Text style={styles.emptySubtext}>
-            Upload images and analyze to generate a listing draft
-          </Text>
-          <TouchableOpacity style={styles.analyzeButton} onPress={handleAnalyze}>
-            <Text style={styles.analyzeButtonText}>Analyze Item</Text>
-          </TouchableOpacity>
-        </View>
+        <ScrollView style={styles.content}>
+          {images.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.label}>Uploaded Images ({images.length})</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageGallery}>
+                {images.map((image) => (
+                  <Image
+                    key={image.id}
+                    source={{ uri: image.url }}
+                    style={styles.thumbnail}
+                  />
+                ))}
+              </ScrollView>
+            </View>
+          )}
+
+          {loadingImages && (
+            <View style={styles.center}>
+              <ActivityIndicator size="small" />
+              <Text style={styles.loadingText}>Loading images...</Text>
+            </View>
+          )}
+
+          {!loadingImages && images.length === 0 && (
+            <View style={styles.center}>
+              <Text style={styles.emptyText}>No images uploaded yet</Text>
+              <Text style={styles.emptySubtext}>
+                Go back to upload images
+              </Text>
+            </View>
+          )}
+
+          {images.length > 0 && (
+            <View style={styles.section}>
+              <Text style={styles.emptyText}>No draft yet</Text>
+              <Text style={styles.emptySubtext}>
+                Analyze images to generate a listing draft
+              </Text>
+              <TouchableOpacity style={styles.analyzeButton} onPress={handleAnalyze}>
+                <Text style={styles.analyzeButtonText}>Analyze Item</Text>
+              </TouchableOpacity>
+            </View>
+          )}
+        </ScrollView>
       </View>
     );
   }
@@ -91,6 +146,21 @@ export default function DraftScreen() {
       </View>
 
       <ScrollView style={styles.content}>
+        {images.length > 0 && (
+          <View style={styles.section}>
+            <Text style={styles.label}>Images ({images.length})</Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageGallery}>
+              {images.map((image) => (
+                <Image
+                  key={image.id}
+                  source={{ uri: image.url }}
+                  style={styles.thumbnail}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        )}
+
         <View style={styles.section}>
           <Text style={styles.label}>Title</Text>
           <Text style={styles.value}>{currentDraft.title}</Text>
@@ -233,6 +303,16 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: '600',
+  },
+  imageGallery: {
+    marginTop: 8,
+  },
+  thumbnail: {
+    width: 120,
+    height: 120,
+    borderRadius: 8,
+    marginRight: 12,
+    backgroundColor: '#f0f0f0',
   },
 });
 
