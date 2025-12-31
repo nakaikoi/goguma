@@ -12,7 +12,7 @@ class ApiClient {
   constructor() {
     this.client = axios.create({
       baseURL: config.apiUrl,
-      timeout: 30000,
+      timeout: 120000, // 2 minutes for image uploads
       headers: {
         'Content-Type': 'application/json',
       },
@@ -114,6 +114,7 @@ class ApiClient {
         'Content-Type': 'multipart/form-data',
         ...(token && { Authorization: `Bearer ${token}` }),
       },
+      timeout: 120000, // 2 minutes specifically for image uploads
     });
     return response.data.data;
   }
