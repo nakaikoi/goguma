@@ -2,7 +2,7 @@
  * Database service for item images
  */
 
-import { supabase } from '../../config/supabase.js';
+import { supabaseAdmin } from '../../config/supabase.js';
 import { logger } from '../../config/logger.js';
 
 export interface CreateImageInput {
@@ -23,7 +23,7 @@ export interface Image {
  * Create image record
  */
 export async function createImage(input: CreateImageInput): Promise<Image> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('item_images')
     .insert({
       item_id: input.itemId,
@@ -55,7 +55,7 @@ export async function getItemImages(
   userId: string
 ): Promise<Image[]> {
   // Verify item belongs to user (via join)
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('item_images')
     .select(`
       *,

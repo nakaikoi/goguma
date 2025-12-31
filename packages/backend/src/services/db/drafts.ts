@@ -2,7 +2,7 @@
  * Database service for listing drafts
  */
 
-import { supabase } from '../../config/supabase.js';
+import { supabaseAdmin } from '../../config/supabase.js';
 import { logger } from '../../config/logger.js';
 import { ListingDraft, type ItemSpecifics } from '@goguma/shared';
 
@@ -32,7 +32,7 @@ export async function createListingDraft(
   itemId: string,
   draft: ListingDraft
 ): Promise<ListingDraftRecord> {
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('listing_drafts')
     .insert({
       item_id: itemId,
@@ -85,7 +85,7 @@ export async function getListingDraft(
   userId: string
 ): Promise<ListingDraftRecord | null> {
   // Verify item belongs to user
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('listing_drafts')
     .select(`
       *,
@@ -155,7 +155,7 @@ export async function updateListingDraft(
   if (draft.aiConfidence !== undefined) updateData.ai_confidence = draft.aiConfidence;
   if (draft.visibleFlaws !== undefined) updateData.visible_flaws = draft.visibleFlaws;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseAdmin
     .from('listing_drafts')
     .update(updateData)
     .eq('item_id', itemId)
