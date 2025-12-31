@@ -94,38 +94,60 @@ class ApiClient {
 
   // Images API
   async uploadImages(itemId: string, images: { uri: string; type: string; name: string }[]) {
+    console.log('📤 Starting image upload...');
+    console.log('API URL:', this.client.defaults.baseURL);
+    console.log('Item ID:', itemId);
+    console.log('Image count:', images.length);
+    console.log('Image URIs:', images.map(img => img.uri));
+    
     const formData = new FormData();
     images.forEach((image, index) => {
       // React Native FormData format
       // Fastify multipart expects files with the same field name
-      formData.append('images', {
+      const fileData = {
         uri: image.uri,
         type: image.type || 'image/jpeg',
         name: image.name || `image-${index}.jpg`,
-      } as any);
+      };
+      console.log(`Adding image ${index + 1}:`, fileData);
+      formData.append('images', fileData as any);
     });
 
     // Get auth token for this request
     const session = await supabase.auth.getSession();
     const token = session.data.session?.access_token;
+    console.log('Auth token:', token ? 'Present' : 'Missing');
 
-    console.log('Uploading images to:', `${this.client.defaults.baseURL}/items/${itemId}/images`);
-    console.log('Image count:', images.length);
+    const uploadUrl = `/items/${itemId}/images`;
+    console.log('📡 Uploading to:', `${this.client.defaults.baseURL}${uploadUrl}`);
     
-    const response = await this.client.post(`/items/${itemId}/images`, formData, {
-      headers: {
-        'Content-Type': 'multipart/form-data',
-        ...(token && { Authorization: `Bearer ${token}` }),
-      },
-      timeout: 120000, // 2 minutes specifically for image uploads
-      onUploadProgress: (progressEvent) => {
-        if (progressEvent.total) {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          console.log(`Upload progress: ${percentCompleted}%`);
-        }
-      },
-    });
-    return response.data.data;
+    try {
+      const response = await this.client.post(uploadUrl, formData, {
+        headers: {
+          // Don't set Content-Type - let axios set it with boundary
+          ...(token && { Authorization: `Bearer ${token}` }),
+        },
+        timeout: 120000, // 2 minutes specifically for image uploads
+        onUploadProgress: (progressEvent) => {
+          if (progressEvent.total) {
+            const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
+            console.log(`📊 Upload progress: ${percentCompleted}% (${progressEvent.loaded}/${progressEvent.total} bytes)`);
+          } else {
+            console.log(`📊 Upload progress: ${progressEvent.loaded} bytes uploaded`);
+          }
+        },
+      });
+      console.log('✅ Upload successful:', response.data);
+      return response.data.data;
+    } catch (error: any) {
+      console.error('❌ Upload failed:', error.message);
+      console.error('Error details:', {
+        code: error.code,
+        response: error.response?.data,
+        status: error.response?.status,
+      });
+      throw error;
+    }
   }
 
   async getItemImages(itemId: string) {

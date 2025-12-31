@@ -31,6 +31,17 @@ async function buildServer() {
     return { status: 'ok', timestamp: new Date().toISOString() };
   });
 
+  // Test endpoint to verify requests are reaching backend
+  server.post('/test-upload', async (request, reply) => {
+    logger.info({ 
+      method: request.method,
+      url: request.url,
+      headers: request.headers,
+      body: request.body,
+    }, 'Test upload endpoint hit');
+    return { status: 'ok', message: 'Request received', timestamp: new Date().toISOString() };
+  });
+
   // Register API routes
   await server.register(itemsRoutes, { prefix: env.API_PREFIX + '/items' });
   await server.register(imagesRoutes, { prefix: env.API_PREFIX });
